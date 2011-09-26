@@ -1,6 +1,8 @@
 <?php
-    /*  Browser V4.00 (2011, Brian Lai)
-        This script cannot edit itself.
+    /*  Browser V4.00 (CC 3.0, MIT) 2011 Brian Lai
+        Code IDE with built-in version tracking
+    
+        Do not edit this script with itself.
     */
     // settings
     define ("THINC_BROWSER_VERSION", 4.00);
@@ -14,7 +16,7 @@
     define ("BACKUP_BEFORE_SAVING", true);
     define ("SHOW_HIDDEN_OBJECTS", true); //only checks if objects' names begin with '.'
     define ("SHOW_BACKUP_OBJECTS", false); //remove .b??????.bak files from the list
-    define ("CHECK_PASSWORD", false); //show login window if...
+    define ("CHECK_PASSWORD", true); //show login window if...
      
     // vars
     $a = isset ($_GET['act']) ? $_GET['act']  : @$_POST['act'];
@@ -58,7 +60,7 @@
             2 = everything  */
         $da = array();
         $mdr = opendir($base);                  // open this directory 
-        while($fn = readdir($mdr)) {            // get each entry
+        while($fn = readdir($mdr)) {           // get each entry
             if (is_dir ($fn) 
                 && $what != 1
                 && $fn != '.'
@@ -163,9 +165,8 @@
                         vertical-align:top;
                         text-align:center; }
                 </style>
-                <!--script type='text/javascript' src='http://ajax.googleapis.com/ajax/libs/jquery/1.4.2/jquery.min.js'></script-->
                 <script type='text/javascript' src='http://ajax.googleapis.com/ajax/libs/jquery/1.6.1/jquery.min.js'></script>
-                <script type='text/javascript' src="http://thinc.netfirms.com/edit_area/edit_area_full.js"></script>
+                <script type='text/javascript' src="http://ohai.ca/scripts/edit_area/edit_area_full.js"></script>
                 <script type='text/javascript'>
 
                     function my_save (id) {
@@ -240,8 +241,8 @@
         // frame
 ?>
         <frameset cols="300px,*">
-            <frame name="tree" src="?mode=1" />
-            <frame name="editor" src="?mode=2" />
+            <frame name="tree" <?php echo ('src="?mode=1"'); ?> />
+            <frame name="editor" <?php echo ('src="?mode=2"'); ?> />
         </frameset><noframes></noframes>
 <?php
     break; case 1:
@@ -394,6 +395,7 @@
                 if (BACKUP_BEFORE_SAVING) {
                     $pcd = date('ymd');
                     $pr = @copy ("$c/$f","$c/$f.b$pcd.bak");
+                    @chmod ("$c/$f.b$pcd.bak", fileperms (__FILE__)); // inherit file permissions
                 }
                 
                 if ($pr == BACKUP_BEFORE_SAVING) {
@@ -602,6 +604,7 @@
                 if (BACKUP_BEFORE_SAVING) {
                     $pcd = date('ymd');
                     $pr = @copy ("$c/$f","$c/$f.b$pcd.bak");
+                    @chmod ("$c/$f.b$pcd.bak", fileperms (__FILE__)); // inherit file permissions
                 }
                 
                 if ($pr == BACKUP_BEFORE_SAVING) {
