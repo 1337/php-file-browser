@@ -16,7 +16,7 @@
     define ("BACKUP_BEFORE_SAVING", true);
     define ("SHOW_HIDDEN_OBJECTS", true); //only checks if objects' names begin with '.'
     define ("SHOW_BACKUP_OBJECTS", false); //remove .b??????.bak files from the list
-    define ("CHECK_PASSWORD", true); //show login window if...
+    define ("CHECK_PASSWORD", false); //show login window if...
      
     // vars
     $a = isset ($_GET['act']) ? $_GET['act']  : @$_POST['act'];
