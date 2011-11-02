@@ -394,7 +394,9 @@
                 //pretend this is a backup
                 if (BACKUP_BEFORE_SAVING) {
                     $pcd = date('ymd');
-                    $pr = @copy ("$c/$f","$c/$f.b$pcd.bak");
+                    if (!file_exists ("$c/$f.b$pcd.bak")) { // copy only if not exists (saves first file of date)
+                        $pr = @copy ("$c/$f","$c/$f.b$pcd.bak");
+                    }
                     @chmod ("$c/$f.b$pcd.bak", fileperms (__FILE__)); // inherit file permissions
                 }
                 
@@ -603,7 +605,9 @@
                 //pretend this is a backup
                 if (BACKUP_BEFORE_SAVING) {
                     $pcd = date('ymd');
-                    $pr = @copy ("$c/$f","$c/$f.b$pcd.bak");
+                    if (!file_exists ("$c/$f.b$pcd.bak")) { // copy only if not exists (saves first file of date)
+                        $pr = @copy ("$c/$f","$c/$f.b$pcd.bak");
+                    }
                     @chmod ("$c/$f.b$pcd.bak", fileperms (__FILE__)); // inherit file permissions
                 }
                 
