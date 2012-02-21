@@ -5,14 +5,11 @@
         Do not edit this script with itself.
     */
     // settings
-    define ("THINC_BROWSER_VERSION", 4.00);
-        
+    define ("THINC_BROWSER_VERSION", 5.00);
+    
     // make the interface change colour.
     $hostname = gethostbyaddr($_SERVER['REMOTE_ADDR']);
-    $hex = dechex (intval (ord (substr ($hostname, 0, 1))/10)*11) . 
-           dechex (intval (ord (substr ($hostname, 1, 1))/10)*11) . 
-           dechex (intval (ord (substr ($hostname, 2, 1))/10)*11);
-    define ("HEADER_COLOR", "#$hex"); // any html colour will do
+    define ("HIGHLIGHT", "#3399ee"); // any html colour will do
     define ("BACKUP_BEFORE_SAVING", true);
     define ("SHOW_HIDDEN_OBJECTS", true); //only checks if objects' names begin with '.'
     define ("SHOW_BACKUP_OBJECTS", false); //remove .b??????.bak files from the list
@@ -30,7 +27,10 @@
     
     // add user / sha1(pass) combinations here.
     if (CHECK_PASSWORD) {
-        $allowed_users = array ('brian'=>'526242588032599f491f36c10137c88c076384ef');
+        $allowed_users = array (
+            'brian' => '526242588032599f491f36c10137c88c076384ef',
+            'guest' => '787373e81b9e76715abeae529faf9a0a9dbf5079'
+        );
         if (strlen ($un) > 0) { // login request
             if (array_key_exists ($un, $allowed_users) && 
                (sha1 ($pw) == $allowed_users[$un])) { // basically, password check
@@ -119,7 +119,7 @@
                 $pp='http://img693.imageshack.us/img693/2083/zipicon.gif';
                 break; 
             default;
-                $pp='http://img266.imageshack.us/img266/5201/iconunknown.gif';
+                $pp='http://i.imgur.com/idBil.gif';
         }
         return $pp;
     }
@@ -145,6 +145,10 @@
         <html>
             <head>
                 <style type="text/css">
+                    .tree {
+                        background-color: #454d50; }
+                        .tree * {
+                            color: #eee; }
                     html, body, tr, th, td {
                         font-family:'Segoe UI', Arial, sans-serif;
                         font-size: 12px; }
@@ -160,10 +164,12 @@
                     .header {
                         margin:0 0 5px 0;
                         padding:5px;
-                        background-color:<?php echo (HEADER_COLOR); ?>;
-                        color:white;
-                        vertical-align:top;
-                        text-align:center; }
+                        /* background-color:<?php echo (HIGHLIGHT); ?>; */
+                        font-size: 14pt;
+                        color: <?php echo (HIGHLIGHT); ?>;
+                        vertical-align:top; }
+                    .small { 
+                        font-size: 10px; }
                 </style>
                 <script type='text/javascript' src='http://ajax.googleapis.com/ajax/libs/jquery/1.6.1/jquery.min.js'></script>
                 <script type='text/javascript' src="http://ohai.ca/scripts/edit_area/edit_area_full.js"></script>
@@ -247,7 +253,7 @@
 <?php
     break; case 1:
         // tree 
-        echo("<body>
+        echo("<body class='tree'>
                 <p class='header'>
                     <a href='?cwd=" . dirname ($c) . "&amp;mode=1' target='tree'>
                         <img src='http://img707.imageshack.us/img707/1033/iconfolderup.gif' />
@@ -259,9 +265,7 @@
                     <table cellspacing='0' cellpadding='2'>
                         <tr>
                             <th>&nbsp;</th>
-                            <th>&nbsp;</th>
                             <th style='width:100%'>Name</th>
-                            <th>Size</th>
                             <th>FilePerm</th>
                         </tr>");
 
@@ -269,40 +273,35 @@
         $i = 0;
         foreach ($da as $pn) {
             $i++;
-            
             $pp = fileicon ($pn);
+            if (is_dir ("$c/$pn")) {
+                $fi = "";
+            } else {
+                $fi = "<a href='?cwd=$c&amp;file=$pn&amp;mode=3' target='_blank'>
+                            Download
+                            (" . filesize ("$c/$pn") . " B)
+                       </a>";
+            }
 
-            @printf ("    <tr %s>
+            @printf ("    <tr " . (($i % 2 == 0)? "style='background-color:rgba(255,255,255,0.1);'": '') . ">
                             <td>
                                 <input type='checkbox' name='c$i' value='1' />
                                 <input type='hidden' name='f$i' value='$c/$pn' />
                             </td>
-                            <td style='width:1px'>
-                                %s
-                                <img src='$pp' style='width:16px;max-height:16px;' />
-                                %s
-                            </td>
                             <td style='width:100%%'>
                                 <a href='?cwd=%s&amp;file=$pn&amp;mode=%d'
-                                   target='%s' style='%s'>$pn</a>
+                                   target='%s' style='%s'><img src='$pp' />$pn</a>
+                                <br />
+                                <span class='small'>$fi</span>
                             </td>
-                            <td style='text-align:right;'>%d</td>
                             <td style='text-align:right;'>%s</td>
                         </tr>",
-                    (($i % 2 == 0)? "style='background-color:#eee;'": ''), //tr
-                    (is_dir ("$c/$pn"))? 
-                        '':
-                        "<a href='?cwd=$c&amp;file=$pn&amp;mode=3' target='_blank'>",
-                    (is_dir ("$c/$pn"))? 
-                        '':
-                        '</a>',
                     (is_dir ("$c/$pn"))? "$c/$pn" :$c, //cwd
                     (is_dir ("$c/$pn"))? 1 : 2,
                     (is_dir ("$c/$pn"))? "tree" : "editor",
                     (is_dir ("$c/$pn")?
-                        'background-color:' . HEADER_COLOR . ';padding:3px;color:white;':
+                        'background-color:' . HIGHLIGHT . ';padding:3px;color:white;':
                         ''),
-                    @filesize ("$c/$pn"),
                     @fileperm ("$c/$pn"));
         }
 
