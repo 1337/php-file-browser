@@ -197,18 +197,20 @@
                                 return String.fromCharCode((c<="Z"?90:122)>=(c=c.charCodeAt(0)+13)?c:c-26);})
                             };
 
-                            editAreaLoader.init({
-                                id: "p" // id of the textarea to transform      
-                                ,start_highlight: true  // if start with highlight
-                                ,allow_toggle: false
-                                ,word_wrap: false
-                                ,syntax: "php"
-                                ,replace_tab_by_spaces:4
-                                ,toolbar: "save,undo,redo,search,reset_highlight,word_wrap,fullscreen,select_font,syntax_selection"
-                                ,font_family: "monaco, consolas, monospace"
-                                ,font_size: "9"
-                                ,save_callback: "my_save"
-                            });
+                            if ($('#p').length >= 1) {
+                                editAreaLoader.init({
+                                    id: "p" // id of the textarea to transform      
+                                    ,start_highlight: true  // if start with highlight
+                                    ,allow_toggle: false
+                                    ,word_wrap: false
+                                    ,syntax: "php"
+                                    ,replace_tab_by_spaces:4
+                                    ,toolbar: "save,undo,redo,search,reset_highlight,word_wrap,fullscreen,select_font,syntax_selection"
+                                    ,font_family: "monaco, consolas, monospace"
+                                    ,font_size: "9"
+                                    ,save_callback: "my_save"
+                                });
+                            }
                         });
                     });
                 </script>
@@ -234,7 +236,7 @@
                 </p>
                 <form method='post' target='tree' action='?mode=5'>
                 <!-- ?mode=5 is needed -->
-                    <table cellspacing='0' cellpadding='2'>");
+                    <table id='filetree' cellspacing='0' cellpadding='2'>");
 
         $da = array_merge (filelist ($c, 0),filelist ($c, 1));
         $i = 0;
@@ -271,6 +273,24 @@
         $dpf=($dts!=0)?round(disk_free_space(getcwd())/$dts*100,2):0; //calculate disk space
         $phv=phpversion();
         echo("      </table>
+                    <script type='text/javascript'>
+                        $(document).ready (function () {
+                            var populate = function (id, data) {
+                                var ctl = $('#' + id);
+                                for (x in data) {
+                                    ctl.append ('<tr><td>LOL</td></tr>');
+                                }
+                            };
+                            
+                            $.getJSON ('" . basename (__FILE__) . "', {
+                                    'mode': '10',
+                                    'cwd': '" . $c . "'
+                                }, function (data) {
+                                    populate ('filetree', data);
+                                }
+                            );
+                        });
+                    </script>
                     <p>($i items shown)</p>
                     <p class='header'>Selected items:</p>
                     <input type='radio' name='act' value='rm'>rm <br />
@@ -580,7 +600,37 @@
 <?php
     break; case 10:
         // return JSON file list of a given folder.
-        echo '';
+        
+        switch ($p1) {
+            case '0': // dirs
+                $da = filelist ($c, 0);
+                break;
+            case '1': // files
+                $da = filelist ($c, 1);
+                break;
+            case '2': // everything
+            default:
+                $da = array_merge (filelist ($c, 0),filelist ($c, 1));
+                break;
+        }
+        $output = array ();
+        foreach ($da as $pn) {
+            $ft = is_dir ("$c/$pn") ? "dir" : "file";
+            $fs = is_file ("$c/$pn") ? filesize_natural (filesize ("$c/$pn")) : "";
+            try {
+                $fp = fileperm ("$c/$pn");
+            } catch (Exception $e) {
+                $fp = '0000';
+            }
+            $output[] = array (
+                'name' => $pn,
+                'type' => $ft,
+                'size' => $fs,
+                'perm' => $fp,
+            );
+        }
+        header ("Content-type: application/json");
+        echo (json_encode ($output));
 ?>
 <?php
     break; case 99:
