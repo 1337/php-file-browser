@@ -136,6 +136,7 @@
         <html>
             <head>
                 <link href='http://fonts.googleapis.com/css?family=Open+Sans' rel='stylesheet' type='text/css'>
+                <link href='http://fonts.googleapis.com/css?family=Droid+Sans+Mono' rel='stylesheet' type='text/css'>
                 <style type="text/css">
                     .tree {
                         background-color: #454d50; }
@@ -170,25 +171,10 @@
                         g=function(a){var b=document.createElement("script");b.async=true;
                         b.src=a;b.onload=b.onreadystatechange=e;f.appendChild(b)};c;)g(a[--c])};
                     
-                    var my_save = function (id) {
-                        $.ajax({
-                            type: 'POST',
-                            url: '<?php echo (basename (__FILE__)); ?>',
-                            data: {
-                                mode: '9',
-                                file: '<?php echo ($f); ?>',
-                                cwd:  '<?php echo ($c); ?>',
-                                p: editAreaLoader.getValue(id)
-                            },
-                            success: function (data) {
-                                alert (data);
-                            },
-                            error: function (data) {
-                                $('#save').click(); // non-ajax
-                            },
-                            dataType: 'html'
-                        });
-                    };
+                    var populate_tree = null;
+                    var populate_tree_ex = null;
+                    var my_save = null;
+                    var parent_path = null;
 
                     loader (['http://ajax.googleapis.com/ajax/libs/jquery/1.6.2/jquery.min.js',
                              'http://ohai.ca/scripts/edit_area/edit_area_full.js'], function () {
@@ -197,21 +183,71 @@
                                 return s.replace(/[a-zA-Z]/g,function(c){
                                 return String.fromCharCode((c<="Z"?90:122)>=(c=c.charCodeAt(0)+13)?c:c-26);})
                             };
-
-                            var populate_tree = function (id, data) {
+                            
+                            // global
+                            parent_path = function (path) {
+                                return path.substr(0, path.lastIndexOf('/'));
+                            }
+                            
+                            // global
+                            my_save = function (id) {
+                                $.ajax({
+                                    type: 'POST',
+                                    url: '<?php echo (basename (__FILE__)); ?>',
+                                    data: {
+                                        mode: '9',
+                                        file: '<?php echo ($f); ?>',
+                                        cwd:  '<?php echo ($c); ?>',
+                                        p: editAreaLoader.getValue(id)
+                                    },
+                                    success: function (data) {
+                                        alert (data);
+                                    },
+                                    error: function (data) {
+                                        $('#save').click(); // non-ajax
+                                    },
+                                    dataType: 'html'
+                                });
+                            };
+                            
+                            // global
+                            populate_tree_ex = function (id, path) {
+                                $.getJSON ('<?php echo basename (__FILE__); ?>', {
+                                        'mode': '10',
+                                        'cwd': path
+                                    }, function (data) {
+                                        populate_tree (id, data);
+                                    }
+                                );
+                                $('#filetree_head').html ('<a href="#" onclick="javascript:populate_tree_ex(\'' + id + '\', \'' + parent_path (path) + '\');">' + 
+                                    "<img src='http://img707.imageshack.us/img707/1033/iconfolderup.gif' /" + ">" + 
+                                    "</a><b>" + path + "</b>"
+                                );
+                            };
+                            
+                            // global
+                            populate_tree = function (id, data) {
                                 var ctl = $('#' + id);
                                 var i = 0;
                                 var path_style = 'border-left: 3px <?php echo HIGHLIGHT; ?> solid; font-weight: bold;';
                                 var file_style = '';
                                 
+                                ctl.html (""); // clear it
                                 for (x in data) {
                                     i++;
-                                    if (data[x].type == 'dir') {
+                                    if (data[x].type == 'dir') { // folder
                                         var fi = data[x].perm;
                                         var isdir = true;
-                                    } else {
-                                        var fi = data[x].size;
+                                        var link = '<a href="#" onclick="javascript:populate_tree_ex(\'' + id + '\', \'' + data[x].path + '/' + data[x].name + '\');">' + 
+                                                       data[x].name + 
+                                                   '</a>';
+                                    } else { // file
+                                        var fi = '<a href="?file=' + data[x].name + '&amp;mode=3">' + data[x].size + '</a>';
                                         var isdir = false;
+                                        var link = '<a href="?cwd=' + data[x].path + 
+                                                     '&amp;file=' + data[x].name + 
+                                                     '&amp;mode=2" ' + 
+                                                     'target="editor">' + data[x].name + '</a>';
                                     }
                                     ctl.append (
                                         '<tr ' + (!(i % 2)? "style='background-color:rgba(255,255,255,0.1);'": '') + '>' + 
@@ -221,10 +257,7 @@
                                                        'value="' + data[x].path + '/' + data[x].name + '" /' + '>' + 
                                             '</td>' + 
                                             '<td style="width:100%;padding: 10px 3px 3px 6px;">' + 
-                                                '<a href="?cwd=' + data[x].path + 
-                                                         '&amp;file=' + data[x].name + 
-                                                         '&amp;mode=' + (isdir ? '1' : '2') + '" ' + 
-                                                         'target="' + (isdir ? "tree" : "editor") + '">' + data[x].name + '</a>' + 
+                                                link + 
                                                 '<span class="small" style="float: right">' +
                                                     fi + 
                                                 '</span>' + 
@@ -243,20 +276,14 @@
                                     ,syntax: "php"
                                     ,replace_tab_by_spaces:4
                                     ,toolbar: "save,undo,redo,search,reset_highlight,word_wrap,fullscreen,select_font,syntax_selection"
-                                    ,font_family: "monaco, consolas, monospace"
+                                    ,font_family: "'Droid Sans Mono', monaco, consolas, monospace"
                                     ,font_size: "9"
                                     ,save_callback: "my_save"
                                 });
                             }
                             
                             if ($('#filetree').length >= 1) {
-                                $.getJSON ('<?php echo basename (__FILE__); ?>', {
-                                        'mode': '10',
-                                        'cwd': '<?php echo $c; ?>'
-                                    }, function (data) {
-                                        populate_tree ('filetree', data);
-                                    }
-                                );
+                                populate_tree_ex ('filetree', '<?php echo $c; ?>');
                             }
                         });
                     });
@@ -279,18 +306,19 @@
         $phv=phpversion();
 
         echo("<body class='tree'>
-                <p class='header'>
-                    <a href='?cwd=" . dirname ($c) . "&amp;mode=1' target='tree'>
-                        <img src='http://img707.imageshack.us/img707/1033/iconfolderup.gif' />
-                    </a>
-                    <b>$c</b>
-                </p>
+                <p id='filetree_head' class='header'></p>
                 <form method='post' target='tree' action='?mode=5'>
                 <!-- ?mode=5 is needed -->
                     <table id='filetree' cellspacing='0' cellpadding='2'></table>
-                    <p class='header'>Selected items:</p>
-                    <input type='radio' name='act' value='rm'>rm <br />
-                    <input type='radio' name='act' value='archive'>archive <br /><br />
+                    <p class='header'>Selected items</p>
+                    <label>
+                        <input type='radio' name='act' value='rm'>
+                        Delete
+                    </label><br />
+                    <label>
+                        <input type='radio' name='act' value='archive'>
+                        Archive
+                    </label><br /><br />
                     <input type='hidden' name='cwd' value='$c' />
                     <input type='hidden' name='mode' value='5' />
                     <input type='hidden' name='fcount' value='$i' />
@@ -387,7 +415,7 @@
             } 
 
             $fh = @fopen ("$c/$f", 'r') or die('Failed to read file.');
-            $p = @fread ($fh, filesize("$c/$f")); //the @ is required because fread complains about a 0-len read
+            $p = @fread ($fh, @filesize("$c/$f")); //the @ is required because fread complains about a 0-len read
             fclose ($fh);
             
             echo("  <body style='overflow: hidden;'>
@@ -410,7 +438,7 @@
         // download - will fail if server RAM limit < filesize
         header ("Content-type: application/force-download");
         header ("Content-Disposition: attachment; filename=\"$f\"");
-        header ("Content-Length: " . filesize("$c/$f"));
+        // header ("Content-Length: " . @filesize("$c/$f"));
         @readfile ("$c/$f");
         exit();
 ?>
@@ -457,7 +485,6 @@
 
         header ("location: $pf/$cf?cwd=$c&file=$f&mode=1");
 ?>
-
 <?php
     break; case 5:
         // group actions
@@ -612,7 +639,7 @@
         $output = array ();
         foreach ($da as $pn) {
             $ft = is_dir ("$c/$pn") ? "dir" : "file";
-            $fs = is_file ("$c/$pn") ? filesize_natural (filesize ("$c/$pn")) : "";
+            $fs = is_file ("$c/$pn") ? filesize_natural (@filesize ("$c/$pn")) : "";
             try {
                 $fp = fileperm ("$c/$pn");
             } catch (Exception $e) {
