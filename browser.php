@@ -1,5 +1,5 @@
 <?php
-    /*  Browser V4.00 (CC 3.0, MIT) 2011 Brian Lai
+    /*  Browser V4.00 (CC 3.0, MIT) 2012 Brian Lai
         Code IDE with built-in version tracking
     
         Do not edit this script with itself.
@@ -52,28 +52,28 @@
     }
 
     chdir ($c); // because
-        
-    function filelist($base,$what=2) {
+    
+    function filelist ($base, $what = 2) {
         /*  what
             0 = dirs only
             1 = files only
             2 = everything  */
         $da = array();
         $mdr = opendir($base);                  // open this directory 
-        while($fn = readdir($mdr)) {           // get each entry
-            if (is_dir ($fn) 
-                && $what != 1
-                && $fn != '.'
-                && $fn != '..') {
-                if (SHOW_HIDDEN_OBJECTS || substr ($fn,0,1) != '.') {
-                    $da[] = $fn;
+        while($fn = readdir($mdr)) {            // get each entry
+            if (is_dir ($fn)) {
+                if (($what == 0 || $what == 2) && 
+                    $fn != '.' && 
+                    $fn != '..') {
+                    if (SHOW_HIDDEN_OBJECTS || substr ($fn,0,1) != '.') {
+                        $da[] = $fn;
+                    }
                 }
-            } elseif ( !is_dir ($fn) 
-                       && $what != 0
-                       && $fn != '.'
-                       && $fn != '..') {
-                if (SHOW_HIDDEN_OBJECTS || substr ($fn,0,1) != '.') {
-                    $da[] = $fn;
+            } elseif (is_file ($fn)) {
+                if ($what == 1 || $what == 2) {
+                    if (SHOW_HIDDEN_OBJECTS || substr ($fn,0,1) != '.') {
+                        $da[] = $fn;
+                    }
                 }
             }
         }
@@ -99,29 +99,19 @@
     function fileperm ($filename) {
         return substr(sprintf('%o', fileperms($filename)), -4);
     }
-    
-    function fileicon ($pn) {
-        //$pn is the file name, not the path name
-        switch (extension ($pn)) {
-            case 'jpg'; case 'bmp'; case 'gif'; case 'png': // icons for different types
-                $pp='http://img203.imageshack.us/img203/8251/iconjpg.gif';
-                break; 
-            case 'doc'; case 'docx'; case 'rtf'; case 'txt':
-                $pp='http://img63.imageshack.us/img63/545/writedocumenticon.png';
-                break;
-            case 'pdf':
-                $pp='http://img810.imageshack.us/img810/2958/pdficon.gif';
-                break;
-            case 'php'; case 'htm'; case 'html':
-                $pp='http://img843.imageshack.us/img843/5929/codeicon.png';
-                break; 
-            case 'zip'; case 'rar'; case '7z'; case 'gz':
-                $pp='http://img693.imageshack.us/img693/2083/zipicon.gif';
-                break; 
-            default;
-                $pp='http://i.imgur.com/idBil.gif';
+
+    function filesize_natural ($bytes) {
+        # Snippet from PHP Share: http://www.phpshare.org
+        if ($bytes >= 1073741824) {
+            $bytes = number_format ($bytes / 1073741824, 2) . ' GB';
+        } elseif ($bytes >= 1048576) {
+            $bytes = number_format ($bytes / 1048576, 2) . ' MB';
+        } elseif ($bytes >= 1024) {
+            $bytes = number_format ($bytes / 1024, 2) . ' KB';
+        } else {
+            $bytes = $bytes . ' B';
         }
-        return $pp;
+        return $bytes;
     }
     
     /*  modes
@@ -135,6 +125,7 @@
         7   current dir, upload     tree
         8   login window (set cookies)
         9   ajax file transfer (accepts $_POST)
+        10  ajax JSON filelist      tree
         99    debug
     */
     if ($m==0 || 
@@ -164,80 +155,61 @@
                     .header {
                         margin:0 0 5px 0;
                         padding:5px;
-                        /* background-color:<?php echo (HIGHLIGHT); ?>; */
                         font-size: 14pt;
                         color: <?php echo (HIGHLIGHT); ?>;
                         vertical-align:top; }
                     .small { 
                         font-size: 10px; }
                 </style>
-                <script type='text/javascript' src='http://ajax.googleapis.com/ajax/libs/jquery/1.6.1/jquery.min.js'></script>
-                <script type='text/javascript' src="http://ohai.ca/scripts/edit_area/edit_area_full.js"></script>
                 <script type='text/javascript'>
+                    // http://blog.fedecarg.com/2011/07/12/javascript-asynchronous-script-loading-and-lazy-loading/
+                    var loader=function(a,b){b = b||function(){};for(var c=a.length,d=c,e=function(){
+                        if(!(this.readyState&&this.readyState!=="complete"&&this.readyState!=="loaded")){
+                        this.onload=this.onreadystatechange=null;--d||b()}},f=document.getElementsByTagName("head")[0],
+                        g=function(a){var b=document.createElement("script");b.async=true;
+                        b.src=a;b.onload=b.onreadystatechange=e;f.appendChild(b)};c;)g(a[--c])};
+                    
+                    var my_save = function (id) {
+                        $.ajax({
+                            type: 'POST',
+                            url: '<?php echo (basename (__FILE__)); ?>',
+                            data: {
+                                mode: '9',
+                                file: '<?php echo ($f); ?>',
+                                cwd:  '<?php echo ($c); ?>',
+                                p: editAreaLoader.getValue(id)
+                            },
+                            success: function (data) {
+                                alert (data);
+                            },
+                            error: function (data) {
+                                $('#save').click(); // non-ajax
+                            },
+                            dataType: 'html'
+                        });
+                    };
 
-                    function my_save (id) {
-                        // alert("Here is the content of the EditArea '"+ id +"' as received by the save callback function:\n"+content);
-                        // document.getElementById('save').click();
+                    loader (['http://ajax.googleapis.com/ajax/libs/jquery/1.6.2/jquery.min.js',
+                             'http://ohai.ca/scripts/edit_area/edit_area_full.js'], function () {
                         $(document).ready (function () {
-                            $.ajax({
-                                type: 'POST',
-                                url: '<?php echo (basename (__FILE__)); ?>',
-                                data: {
-                                    mode: '9',
-                                    file: '<?php echo ($f); ?>',
-                                    cwd:  '<?php echo ($c); ?>',
-                                    p: editAreaLoader.getValue(id)
-                                },
-                                success: function (data) {
-                                    alert (data);
-                                },
-                                error: function (data) {
-                                    document.getElementById('save').click(); // non-ajax
-                                },
-                                dataType: 'html'
+                            var rot13 = function (s) {
+                                return s.replace(/[a-zA-Z]/g,function(c){
+                                return String.fromCharCode((c<="Z"?90:122)>=(c=c.charCodeAt(0)+13)?c:c-26);})
+                            };
+
+                            editAreaLoader.init({
+                                id: "p" // id of the textarea to transform      
+                                ,start_highlight: true  // if start with highlight
+                                ,allow_toggle: false
+                                ,word_wrap: false
+                                ,syntax: "php"
+                                ,replace_tab_by_spaces:4
+                                ,toolbar: "save,undo,redo,search,reset_highlight,word_wrap,fullscreen,select_font,syntax_selection"
+                                ,font_family: "monaco, consolas, monospace"
+                                ,font_size: "9"
+                                ,save_callback: "my_save"
                             });
                         });
-                    }
-
-                    function my_save_2 (id, content) {
-                        // alert("Here is the content of the EditArea '"+ id +"' as received by the save callback function:\n"+content);
-                        document.getElementById('save').click();
-                        /*$(document).ready (function () {
-                            $.ajax({
-                                type: 'POST',
-                                url: '<?php echo (basename (__FILE__)); ?>',
-                                data: {
-                                    mode: '9',
-                                    file: '<?php echo ($f); ?>',
-                                    cwd:  '<?php echo ($c); ?>',
-                                    p: content
-                                },
-                                success: function (data) {
-                                    alert (data);
-                                },
-                                dataType: 'html'
-                            });
-                        });*/
-                    }
-
-                    $(document).ready (function () {
-                        function rot13(s) {
-                            return s.replace(/[a-zA-Z]/g,function(c){
-                            return String.fromCharCode((c<="Z"?90:122)>=(c=c.charCodeAt(0)+13)?c:c-26);})
-                        }
-                        editAreaLoader.init({
-                            id: "p" // id of the textarea to transform      
-                            ,start_highlight: true  // if start with highlight
-                            ,allow_toggle: false
-                            ,word_wrap: false
-                            ,syntax: "php"
-                            ,replace_tab_by_spaces:4
-                            ,toolbar: "save,undo,redo,search,reset_highlight,word_wrap,fullscreen,select_font,syntax_selection"
-                            ,font_family: "monaco, consolas, monospace"
-                            ,font_size: "9"
-                            // ,load_callback: "my_save_2"
-                            ,save_callback: "my_save"
-                        });                    
                     });
                 </script>
             </head>
@@ -262,47 +234,37 @@
                 </p>
                 <form method='post' target='tree' action='?mode=5'>
                 <!-- ?mode=5 is needed -->
-                    <table cellspacing='0' cellpadding='2'>
-                        <tr>
-                            <th>&nbsp;</th>
-                            <th style='width:100%'>Name</th>
-                            <th>FilePerm</th>
-                        </tr>");
+                    <table cellspacing='0' cellpadding='2'>");
 
-        $da = filelist ($c);
+        $da = array_merge (filelist ($c, 0),filelist ($c, 1));
         $i = 0;
         foreach ($da as $pn) {
             $i++;
-            $pp = fileicon ($pn);
             if (is_dir ("$c/$pn")) {
-                $fi = "";
+                $fi = "Perms: " . @fileperm ("$c/$pn");
             } else {
-                $fi = "<a href='?cwd=$c&amp;file=$pn&amp;mode=3' target='_blank'>
-                            Download
-                            (" . filesize ("$c/$pn") . " B)
-                       </a>";
+                $fi = "<a href='?cwd=$c&amp;file=$pn&amp;mode=3' target='_blank' 
+                          title='Click to download file'>" . 
+                          filesize_natural (filesize ("$c/$pn")) .
+                       "</a> | Perms: " . @fileperm ("$c/$pn");
             }
 
-            @printf ("    <tr " . (($i % 2 == 0)? "style='background-color:rgba(255,255,255,0.1);'": '') . ">
+            printf ("    <tr " . (($i % 2 == 0)? "style='background-color:rgba(255,255,255,0.1);'": '') . ">
                             <td>
                                 <input type='checkbox' name='c$i' value='1' />
                                 <input type='hidden' name='f$i' value='$c/$pn' />
                             </td>
-                            <td style='width:100%%'>
-                                <a href='?cwd=%s&amp;file=$pn&amp;mode=%d'
-                                   target='%s' style='%s'><img src='$pp' />$pn</a>
-                                <br />
-                                <span class='small'>$fi</span>
+                            <td style='width:100%%;padding: 10px 3px 3px 6px;%s'>
+                                <a href='?cwd=" . (is_dir ("$c/$pn") ? "$c/$pn" : $c) . "&amp;file=$pn&amp;mode=" . (is_dir ("$c/$pn")? 1 : 2) . "'
+                                   target='%s'>$pn</a>
+                                <span class='small' style='float: right;'>$fi</span>
                             </td>
-                            <td style='text-align:right;'>%s</td>
                         </tr>",
-                    (is_dir ("$c/$pn"))? "$c/$pn" :$c, //cwd
-                    (is_dir ("$c/$pn"))? 1 : 2,
-                    (is_dir ("$c/$pn"))? "tree" : "editor",
                     (is_dir ("$c/$pn")?
-                        'background-color:' . HIGHLIGHT . ';padding:3px;color:white;':
+                        'border-left: 3px ' . HIGHLIGHT . ' solid; font-weight: bold;':
                         ''),
-                    @fileperm ("$c/$pn"));
+                    (is_dir ("$c/$pn"))? "tree" : "editor"
+                    );
         }
 
         $dts=disk_total_space(getcwd());
@@ -374,11 +336,9 @@
                     mkdir(p1), mkfile(p1), mv(p1,p2), 
                     rename(p1,p2), rmdir(p1), touch(p1)</p>
                 <hr />
-                <p><b>&copy; 2011 Sparta File Manager V " . THINC_BROWSER_VERSION . "</b><br />
-                   <a href='http://ohai.ca'>Brian Lai</a><br />
-                   php version $phv<br />
-                   cwd: " . getcwd() . "<br />
-                   disk $dpf% free</p>
+                <p> PHP File Browser by Brian Lai.
+                    <a href='https://github.com/1337/php-file-browser'>Get a copy!</a>
+                </p>
             </body>
         </html>");
 ?>
@@ -529,12 +489,8 @@
         foreach ($da as $pn) {
             if (substr($pn,0,1) != '.') { // don't show hidden files
                 $i++;
-                $pp = fileicon ($pn);
 
                 printf ("    <tr %s>
-                                <td style='width:1px'>
-                                    <img src='$pp' style='width:16px;max-height:16px;' />
-                                </td>
                                 <td style='width:100%%;'>
                                     <a href='?file=$pn&amp;mode=3' target='_blank'>$pn</a>
                                 </td>
@@ -620,6 +576,11 @@
                 }  
             } 
         }
+?>
+<?php
+    break; case 10:
+        // return JSON file list of a given folder.
+        echo '';
 ?>
 <?php
     break; case 99:
