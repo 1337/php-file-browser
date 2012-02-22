@@ -135,13 +135,14 @@
 ?>
         <html>
             <head>
+                <link href='http://fonts.googleapis.com/css?family=Open+Sans' rel='stylesheet' type='text/css'>
                 <style type="text/css">
                     .tree {
                         background-color: #454d50; }
                         .tree * {
                             color: #eee; }
-                    html, body, tr, th, td {
-                        font-family:'Segoe UI', Arial, sans-serif;
+                    html, html * {
+                        font-family:'Open Sans', 'Segoe UI', Arial, sans-serif;
                         font-size: 12px; }
                     body {
                         margin:0;
@@ -197,6 +198,42 @@
                                 return String.fromCharCode((c<="Z"?90:122)>=(c=c.charCodeAt(0)+13)?c:c-26);})
                             };
 
+                            var populate_tree = function (id, data) {
+                                var ctl = $('#' + id);
+                                var i = 0;
+                                var path_style = 'border-left: 3px <?php echo HIGHLIGHT; ?> solid; font-weight: bold;';
+                                var file_style = '';
+                                
+                                for (x in data) {
+                                    i++;
+                                    if (data[x].type == 'dir') {
+                                        var fi = data[x].perm;
+                                        var isdir = true;
+                                    } else {
+                                        var fi = data[x].size;
+                                        var isdir = false;
+                                    }
+                                    ctl.append (
+                                        '<tr ' + (!(i % 2)? "style='background-color:rgba(255,255,255,0.1);'": '') + '>' + 
+                                            '<td style="' + (isdir ? path_style : file_style) + '">' + 
+                                                '<input type="checkbox" name="c' + i + '" value="1" /' + '>' + 
+                                                '<input type="hidden" name="f' + i + '" ' + 
+                                                       'value="' + data[x].path + '/' + data[x].name + '" /' + '>' + 
+                                            '</td>' + 
+                                            '<td style="width:100%;padding: 10px 3px 3px 6px;">' + 
+                                                '<a href="?cwd=' + data[x].path + 
+                                                         '&amp;file=' + data[x].name + 
+                                                         '&amp;mode=' + (isdir ? '1' : '2') + '" ' + 
+                                                         'target="' + (isdir ? "tree" : "editor") + '">' + data[x].name + '</a>' + 
+                                                '<span class="small" style="float: right">' +
+                                                    fi + 
+                                                '</span>' + 
+                                            '</td>' + 
+                                        '</tr>'
+                                    );
+                                }
+                            };
+
                             if ($('#p').length >= 1) {
                                 editAreaLoader.init({
                                     id: "p" // id of the textarea to transform      
@@ -210,6 +247,16 @@
                                     ,font_size: "9"
                                     ,save_callback: "my_save"
                                 });
+                            }
+                            
+                            if ($('#filetree').length >= 1) {
+                                $.getJSON ('<?php echo basename (__FILE__); ?>', {
+                                        'mode': '10',
+                                        'cwd': '<?php echo $c; ?>'
+                                    }, function (data) {
+                                        populate_tree ('filetree', data);
+                                    }
+                                );
                             }
                         });
                     });
@@ -227,6 +274,10 @@
 <?php
     break; case 1:
         // tree 
+        $dts=disk_total_space(getcwd());
+        $dpf=($dts!=0)?round(disk_free_space(getcwd())/$dts*100,2):0; //calculate disk space
+        $phv=phpversion();
+
         echo("<body class='tree'>
                 <p class='header'>
                     <a href='?cwd=" . dirname ($c) . "&amp;mode=1' target='tree'>
@@ -236,62 +287,7 @@
                 </p>
                 <form method='post' target='tree' action='?mode=5'>
                 <!-- ?mode=5 is needed -->
-                    <table id='filetree' cellspacing='0' cellpadding='2'>");
-
-        $da = array_merge (filelist ($c, 0),filelist ($c, 1));
-        $i = 0;
-        foreach ($da as $pn) {
-            $i++;
-            if (is_dir ("$c/$pn")) {
-                $fi = "Perms: " . @fileperm ("$c/$pn");
-            } else {
-                $fi = "<a href='?cwd=$c&amp;file=$pn&amp;mode=3' target='_blank' 
-                          title='Click to download file'>" . 
-                          filesize_natural (filesize ("$c/$pn")) .
-                       "</a> | Perms: " . @fileperm ("$c/$pn");
-            }
-
-            printf ("    <tr " . (($i % 2 == 0)? "style='background-color:rgba(255,255,255,0.1);'": '') . ">
-                            <td>
-                                <input type='checkbox' name='c$i' value='1' />
-                                <input type='hidden' name='f$i' value='$c/$pn' />
-                            </td>
-                            <td style='width:100%%;padding: 10px 3px 3px 6px;%s'>
-                                <a href='?cwd=" . (is_dir ("$c/$pn") ? "$c/$pn" : $c) . "&amp;file=$pn&amp;mode=" . (is_dir ("$c/$pn")? 1 : 2) . "'
-                                   target='%s'>$pn</a>
-                                <span class='small' style='float: right;'>$fi</span>
-                            </td>
-                        </tr>",
-                    (is_dir ("$c/$pn")?
-                        'border-left: 3px ' . HIGHLIGHT . ' solid; font-weight: bold;':
-                        ''),
-                    (is_dir ("$c/$pn"))? "tree" : "editor"
-                    );
-        }
-
-        $dts=disk_total_space(getcwd());
-        $dpf=($dts!=0)?round(disk_free_space(getcwd())/$dts*100,2):0; //calculate disk space
-        $phv=phpversion();
-        echo("      </table>
-                    <script type='text/javascript'>
-                        $(document).ready (function () {
-                            var populate = function (id, data) {
-                                var ctl = $('#' + id);
-                                for (x in data) {
-                                    ctl.append ('<tr><td>LOL</td></tr>');
-                                }
-                            };
-                            
-                            $.getJSON ('" . basename (__FILE__) . "', {
-                                    'mode': '10',
-                                    'cwd': '" . $c . "'
-                                }, function (data) {
-                                    populate ('filetree', data);
-                                }
-                            );
-                        });
-                    </script>
-                    <p>($i items shown)</p>
+                    <table id='filetree' cellspacing='0' cellpadding='2'></table>
                     <p class='header'>Selected items:</p>
                     <input type='radio' name='act' value='rm'>rm <br />
                     <input type='radio' name='act' value='archive'>archive <br /><br />
@@ -601,7 +597,7 @@
     break; case 10:
         // return JSON file list of a given folder.
         
-        switch ($p1) {
+        switch ($p1) { // parameter 1 (p1); optional
             case '0': // dirs
                 $da = filelist ($c, 0);
                 break;
@@ -624,6 +620,7 @@
             }
             $output[] = array (
                 'name' => $pn,
+                'path' => $c,
                 'type' => $ft,
                 'size' => $fs,
                 'perm' => $fp,
