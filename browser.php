@@ -137,6 +137,14 @@
             <head>
                 <link href='http://fonts.googleapis.com/css?family=Open+Sans' rel='stylesheet' type='text/css'>
                 <link href='http://fonts.googleapis.com/css?family=Droid+Sans+Mono' rel='stylesheet' type='text/css'>
+                <link href='http://ohai.ca/scripts/codemirror/lib/codemirror.css' rel='stylesheet' type='text/css'>
+                <link href='http://ohai.ca/scripts/codemirror/theme/monokai.css' rel='stylesheet' type='text/css'>
+                <script src='http://ohai.ca/scripts/codemirror/lib/codemirror.js'></script>
+                <script src="http://ohai.ca/scripts/codemirror/mode/xml/xml.js"></script>
+                <script src="http://ohai.ca/scripts/codemirror/mode/javascript/javascript.js"></script>
+                <script src="http://ohai.ca/scripts/codemirror/mode/css/css.js"></script>
+                <script src="http://ohai.ca/scripts/codemirror/mode/clike/clike.js"></script>
+                <script src='http://ohai.ca/scripts/codemirror/mode/php/php.js'></script>
                 <style type="text/css">
                     .tree {
                         background-color: #454d50; }
@@ -162,6 +170,14 @@
                         vertical-align:top; }
                     .small { 
                         font-size: 10px; }
+                    html .CodeMirror, html .CodeMirror * {
+                        font-family: 'Droid Sans Mono', monaco, consolas, monospace;
+                        font-size: 10pt;
+                    }
+                    .CodeMirror {
+                        width: 100%;
+                        height: 100%;
+                    }
                 </style>
                 <script type='text/javascript'>
                     // http://blog.fedecarg.com/2011/07/12/javascript-asynchronous-script-loading-and-lazy-loading/
@@ -268,7 +284,7 @@
                             };
 
                             if ($('#p').length >= 1) {
-                                editAreaLoader.init({
+                                /* editAreaLoader.init({
                                     id: "p" // id of the textarea to transform      
                                     ,start_highlight: true  // if start with highlight
                                     ,allow_toggle: false
@@ -279,6 +295,19 @@
                                     ,font_family: "'Droid Sans Mono', monaco, consolas, monospace"
                                     ,font_size: "9"
                                     ,save_callback: "my_save"
+                                }); */
+                                var editor = CodeMirror.fromTextArea(document.getElementById("p"), {
+                                    lineNumbers: true,
+                                    theme: "monokai",
+                                    mode: "application/x-httpd-php",
+                                    indentUnit: 4,
+                                    smartIndent: true,
+                                    tabSize: 4,
+                                    indentWithTabs: false,
+                                    matchBrackets: true,
+                                    pollInterval: 200,
+                                    undoDepth: 999,
+                                    value: $('#p').val()
                                 });
                             }
                             
