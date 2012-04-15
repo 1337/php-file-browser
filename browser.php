@@ -22,35 +22,180 @@
         10  ajax JSON filelist      tree
         99    debug
     */
-    define ('FRAME', 0);
-    define ('TREE', 1);
-    define ('EDITOR', 2);
-    define ('DOWNLOAD', 3);
-    define ('COMMAND_LINE', 4);
-    define ('GROUP_ACTIONS', 5);
-    define ('DOWNLOAD_HERE', 6);
-    define ('UPLOAD_HERE', 7);
-    define ('LOGIN', 8);
+    define ('FRAME'             , 0);
+    define ('TREE'              , 1);
+    define ('EDITOR'            , 2);
+    define ('DOWNLOAD'          , 3);
+    define ('COMMAND_LINE'      , 4);
+    define ('GROUP_ACTIONS'     , 5);
+    define ('DOWNLOAD_HERE'     , 6);
+    define ('UPLOAD_HERE'       , 7);
+    define ('LOGIN'             , 8);
     define ('AJAX_FILE_TRANSFER', 9);
-    define ('JSON_TREE', 10);
-    define ('DEBUG', 99);
+    define ('JSON_TREE'         , 10);
+    define ('DEBUG'             , 99);
+
+    define ('DIRS_ONLY'         , 0);
+    define ('FILES_ONLY'        , 1);
+    define ('DIRS_AND_FILES'    , 2);
 
     $config = array (
-        'VERSION' => 5.1,
-        'HOSTNAME' => gethostbyaddr ($_SERVER['REMOTE_ADDR']),
-        'HIGHLIGHT' => '#3399ee', // any HTML colour will do
+        'VERSION'              => 5.1,
+        'HOSTNAME'             => gethostbyaddr ($_SERVER['REMOTE_ADDR']),
+        'HIGHLIGHT'            => '#3399EE', // any HTML colour will do
         'BACKUP_BEFORE_SAVING' => true,
-        'SHOW_HIDDEN_OBJECTS' => true, //only checks if objects' names begin with '.'
-        'SHOW_BACKUP_OBJECTS' => false, //remove .b??????.bak files from the list
-        'CHECK_PASSWORD' => false, //show login window if...
-        'ALLOWED_USERS' => array (
+        'SHOW_HIDDEN_OBJECTS'  => true,      // unix only!
+        'SHOW_BACKUP_OBJECTS'  => false,     // show .b??????.bak files
+        'CHECK_PASSWORD'       => false,     // show login window
+        'ALLOWED_USERS'        => array (
             // user => sha1 hash of the password
             'brian' => '526242588032599f491f36c10137c88c076384ef',
             'guest' => '787373e81b9e76715abeae529faf9a0a9dbf5079'
         )
     );
 
-    // functions ==============================================================
+
+    // classes / functions ====================================================
+    class DirTools {
+        public $directory; // used by directory operations
+
+        function __construct ($directory) {
+            $this->directory = str_replace ("\\", '/', $directory);
+            if (substr ($this->directory, -1) !== '/') {
+                $this->directory .= '/'; // auto-add trailing slash
+            }
+        }
+
+        function __toString () {
+            return $this->directory;
+        }
+
+        private static function _filter_backup_objects ($name) {
+            // FALSE are removed
+            return substr ($name, -4, 4) !== '.bak';
+        }
+
+        private static function _filter_hidden_objects ($name) {
+            // FALSE are removed
+            return $name[0] !== '.';
+        }
+
+        public function files ($what = DIRS_AND_FILES) {
+            /*  returns all files from $directory.
+
+                what 0 = dirs only
+                     1 = files only
+                     2 = everything
+            */
+            global $config;
+            $file_objects = array ();
+
+            switch ($what) {
+                case DIRS_ONLY:
+                    $files = glob ($this->directory . '/*', GLOB_ONLYDIR);
+                    break;
+                case FILES_ONLY:
+                    $files = array_diff (
+                        glob ($this->directory . '/*'),
+                        glob ($this->directory . '/*', GLOB_ONLYDIR)
+                    );
+                    break;
+                case DIRS_AND_FILES:
+                default:
+                    $files = glob ($this->directory . '/*');
+                    break;
+            }
+            if (sizeof ($files) > 0) {
+                sort ($files); // sort will explode if count = 0
+                if ($config['SHOW_BACKUP_OBJECTS'] !== true) {
+                    $files = array_filter (
+                        $files,
+                        array ($this, '_filter_backup_objects')
+                    );
+                }
+                if ($config['SHOW_HIDDEN_OBJECTS'] !== true) {
+                    $files = array_filter (
+                        $files,
+                        array ($this, '_filter_hidden_objects')
+                    );
+                }
+            }
+            foreach ($files as &$file) {
+                $file = str_replace ("\\", '/', $file);
+                $file_objects[] = new FileTools (
+                    $this->directory,
+                    basename ($file)
+                );
+            }
+            return $file_objects;
+        }
+
+        public function perms () {
+            try {
+                return substr (
+                    sprintf ('%o', fileperms ($this->directory)),
+                    -4
+                );
+            } catch (Exception $e) {
+                return '0000';
+            }
+        }
+    }
+
+
+    class FileTools {
+        public $directory; // used by directory operations
+        public $filename; // used by single-file operations
+
+        function __construct ($directory, $filename) {
+            $this->directory = str_replace ("\\", '/', $directory);
+            if (substr ($this->directory, -1) !== '/') {
+                $this->directory .= '/'; // auto-add trailing slash
+            }
+            $this->filename = str_replace ("\\", '/', $filename);
+        }
+
+        function __toString () {
+            return $this->directory . $this->filename;
+        }
+
+        public function extension () {
+            return pathinfo ($this->filename, PATHINFO_EXTENSION);
+        }
+
+        public function perms () {
+            try {
+                return substr (
+                    sprintf ('%o', fileperms ($this->filename)),
+                    -4
+                );
+            } catch (Exception $e) {
+                return '0000';
+            }
+        }
+
+        public function natural_size () {
+            // Modded snippet from PHP Share: http://www.phpshare.org
+            $bytes = filesize ($this->filename);
+            if ($bytes >= 1073741824) {
+                $bytes = number_format ($bytes / 1073741824, 2) . ' GB';
+            } else if ($bytes >= 1048576) {
+                $bytes = number_format ($bytes / 1048576, 2) . ' MB';
+            } else if ($bytes >= 1024) {
+                $bytes = number_format ($bytes / 1024, 2) . ' KB';
+            } else {
+                $bytes = $bytes . ' B';
+            }
+            return $bytes;
+        }
+        
+        public function backup_file () {
+            $pcd = date('ymd');
+            return $this->directory . $this->filename . '.b' . $pcd . '.bak';
+        }
+    }
+
+
     function vars ($index = false, $default = null) {
         // gathers everything from the request.
         // see cached version of this function: github.com/1337/pop
@@ -71,101 +216,31 @@
         return $default;
     }
 
-    function filelist ($base, $what = 2) {
-        /*  what
-            0 = dirs only
-            1 = files only
-            2 = everything  */
-        $da = array ();
-        $mdr = opendir ($base);                  // open this directory
-        while ($fn = readdir($mdr)) {            // get each entry
-            if (is_dir ($fn)) {
-                if (($what == 0 || $what == 2) &&
-                    $fn != '.' &&
-                    $fn != '..') {
-                    if ($config['SHOW_HIDDEN_OBJECTS'] || substr ($fn,0,1) != '.') {
-                        $da[] = $fn;
-                    }
-                }
-            } else if (is_file ($fn)) {
-                if ($what == 1 || $what == 2) {
-                    if ($config['SHOW_HIDDEN_OBJECTS'] || substr ($fn,0,1) != '.') {
-                        $da[] = $fn;
-                    }
-                }
-            }
-        }
-        closedir ($mdr); // close directory
-        $index_count = sizeof ($da); // count elements in array
-        if ($index_count > 0) {
-            sort ($da); // sort will explode if count=0
-            if (SHOW_BACKUP_OBJECTS != true) {
-                $da = array_filter ($da, "filter_backup_objects");
-            }
-        }
-        return $da;
-    }
-
-    function filter_backup_objects ($var) {
-        return substr ($var, -4, 4) !== '.bak';
-    }
-
-    function extension ($filename) {
-        return pathinfo ($filename, PATHINFO_EXTENSION);
-    }
-
-    function fileperm ($filename) {
-        return substr( sprintf ('%o', fileperms($filename)), -4);
-    }
-
-    function filesize_natural ($bytes) {
-        # Snippet from PHP Share: http://www.phpshare.org
-        if ($bytes >= 1073741824) {
-            $bytes = number_format ($bytes / 1073741824, 2) . ' GB';
-        } elseif ($bytes >= 1048576) {
-            $bytes = number_format ($bytes / 1048576, 2) . ' MB';
-        } elseif ($bytes >= 1024) {
-            $bytes = number_format ($bytes / 1024, 2) . ' KB';
-        } else {
-            $bytes = $bytes . ' B';
-        }
-        return $bytes;
-    }
 
     // public subs ============================================================
-    $act = vars ('act');
-    $cwd = vars ('cwd', getcwd());
-    $mode = vars ('mode', 0); // 0 = frame page
-    $file = vars ('file');
-    $p1 = vars ('p1'); // params for $act
-    $p2 = vars ('p2');
-    $username = vars ('username');
-    $password = vars ('password');
+    $act           = vars ('act');
+    $cwd           = new DirTools (vars ('cwd', getcwd ()));
+    $mode          = vars ('mode', 0); // 0 = frame page
+    $file          = new FileTools ($cwd, vars ('file'));
+    $file_base     = basename ($file);
+    $param1        = vars ('param1'); // params for $act
+    $param2        = vars ('param2');
+    $username      = vars ('username');
+    $password      = vars ('password');
 
-    // add user / sha1(pass) combinations here.
-    if ($config['CHECK_PASSWORD'] === true) {
-        if (strlen ($username) > 0) { // login request
-            if (array_key_exists ($username, $config['ALLOWED_USERS']) &&
-               (sha1 ($password) === $config['ALLOWED_USERS'][$username])) { // basically, password check
-                setcookie ("username", $username, time() + 36000);
-                setcookie ("password", $password, time() + 36000);
-            } else {
-                $mode = 8; // wrong password, switch to mode 8 (login window)
-            }
+    chdir ($cwd); // because
+
+    if ($config['CHECK_PASSWORD'] === true && strlen ($username) > 0) {
+        // login request
+        if (array_key_exists ($username, $config['ALLOWED_USERS']) &&
+           (sha1 ($password) === $config['ALLOWED_USERS'][$username])) {
+            setcookie ("username", $username, time() + 36000);
+            setcookie ("password", $password, time() + 36000);
         } else {
-            if (isset ($_COOKIE["username"]) && isset ($_COOKIE["password"]) &&
-                array_key_exists ($_COOKIE["username"], $config['ALLOWED_USERS']) &&
-                $config['ALLOWED_USERS'][$_COOKIE["username"]] == sha1 ($_COOKIE["password"])) {
-                // do nothing. user is authenticated.
-            } else {
-                // user not logged in or password is wrong
-                $mode = 8; // switch to mode 8 (login window)
-            }
+            $mode = LOGIN; // authentication failed; redirect to login page
         }
     }
 
-    chdir ($cwd); // because
-    
     // For modes with html heads, print head now.
     if (in_array ($mode, array (FRAME, TREE, EDITOR, DOWNLOAD_HERE))) {
 ?>
@@ -173,14 +248,9 @@
             <head>
                 <link href='http://fonts.googleapis.com/css?family=Open+Sans' rel='stylesheet' type='text/css'>
                 <link href='http://fonts.googleapis.com/css?family=Droid+Sans+Mono' rel='stylesheet' type='text/css'>
-                <link href='http://ohai.ca/scripts/codemirror/lib/codemirror.css' rel='stylesheet' type='text/css'>
-                <link href='http://ohai.ca/scripts/codemirror/theme/monokai.css' rel='stylesheet' type='text/css'>
-                <script src='http://ohai.ca/scripts/codemirror/lib/codemirror.js'></script>
-                <script src="http://ohai.ca/scripts/codemirror/mode/xml/xml.js"></script>
-                <script src="http://ohai.ca/scripts/codemirror/mode/javascript/javascript.js"></script>
-                <script src="http://ohai.ca/scripts/codemirror/mode/css/css.js"></script>
-                <script src="http://ohai.ca/scripts/codemirror/mode/clike/clike.js"></script>
-                <script src='http://ohai.ca/scripts/codemirror/mode/php/php.js'></script>
+                <link href='https://raw.github.com/1337/php-file-browser/master/scripts/codemirror/lib/codemirror.css' rel='stylesheet' type='text/css'>
+                <link href='https://raw.github.com/1337/php-file-browser/master/scripts/codemirror/theme/monokai.css' rel='stylesheet' type='text/css'>
+                <script src='https://raw.github.com/1337/php-file-browser/master/scripts/codemirror/lib/codemirror.js'></script>
                 <style type="text/css">
                     .tree {
                         background-color: #454d50; }
@@ -225,11 +295,14 @@
 
                     var populate_tree = null;
                     var populate_tree_ex = null;
-                    var my_save = null;
                     var parent_path = null;
 
                     loader (['http://ajax.googleapis.com/ajax/libs/jquery/1.6.2/jquery.min.js',
-                             'http://ohai.ca/scripts/edit_area/edit_area_full.js'], function () {
+                             'https://raw.github.com/1337/php-file-browser/master/scripts/codemirror/mode/xml/xml.js',
+                             'https://raw.github.com/1337/php-file-browser/master/scripts/codemirror/mode/javascript/javascript.js',
+                             'https://raw.github.com/1337/php-file-browser/master/scripts/codemirror/mode/css/css.js',
+                             'https://raw.github.com/1337/php-file-browser/master/scripts/codemirror/mode/clike/clike.js',
+                             'https://raw.github.com/1337/php-file-browser/master/scripts/codemirror/mode/php/php.js'], function () {
                         $(document).ready (function () {
                             var rot13 = function (s) {
                                 return s.replace(/[a-zA-Z]/g,function(c){
@@ -242,31 +315,11 @@
                             }
 
                             // global
-                            my_save = function (id) {
-                                $.ajax({
-                                    type: 'POST',
-                                    url: '<?php echo (basename (__FILE__)); ?>',
-                                    data: {
-                                        mode: '9',
-                                        file: '<?php echo ($f); ?>',
-                                        cwd:  '<?php echo ($c); ?>',
-                                        p: editAreaLoader.getValue(id)
-                                    },
-                                    success: function (data) {
-                                        alert (data);
-                                    },
-                                    error: function (data) {
-                                        $('#save').click(); // non-ajax
-                                    },
-                                    dataType: 'html'
-                                });
-                            };
-
-                            // global
                             populate_tree_ex = function (id, path) {
                                 $.getJSON ('<?php echo basename (__FILE__); ?>', {
-                                        'mode': '10',
-                                        'cwd': path
+                                        'mode': '<?php echo JSON_TREE; ?>',
+                                        'cwd': path,
+                                        'param1': <?php echo DIRS_AND_FILES; ?>
                                     }, function (data) {
                                         populate_tree (id, data);
                                     }
@@ -281,7 +334,7 @@
                             populate_tree = function (id, data) {
                                 var ctl = $('#' + id);
                                 var i = 0;
-                                var path_style = 'border-left: 3px <?php echo HIGHLIGHT; ?> solid; font-weight: bold;';
+                                var path_style = 'border-left: 3px <?php echo $config['HIGHLIGHT']; ?> solid; font-weight: bold;';
                                 var file_style = '';
 
                                 ctl.html (""); // clear it
@@ -319,20 +372,8 @@
                                 }
                             };
 
-                            if ($('#p').length >= 1) {
-                                /* editAreaLoader.init({
-                                    id: "p" // id of the textarea to transform
-                                    ,start_highlight: true  // if start with highlight
-                                    ,allow_toggle: false
-                                    ,word_wrap: false
-                                    ,syntax: "php"
-                                    ,replace_tab_by_spaces:4
-                                    ,toolbar: "save,undo,redo,search,reset_highlight,word_wrap,fullscreen,select_font,syntax_selection"
-                                    ,font_family: "'Droid Sans Mono', monaco, consolas, monospace"
-                                    ,font_size: "9"
-                                    ,save_callback: "my_save"
-                                }); */
-                                var editor = CodeMirror.fromTextArea(document.getElementById("p"), {
+                            if ($('#content').length >= 1) {
+                                var editor = CodeMirror.fromTextArea(document.getElementById("content"), {
                                     lineNumbers: true,
                                     theme: "monokai",
                                     mode: "application/x-httpd-php",
@@ -343,7 +384,7 @@
                                     matchBrackets: true,
                                     pollInterval: 200,
                                     undoDepth: 999,
-                                    value: $('#p').val()
+                                    value: $('#content').val()
                                 });
                             }
 
@@ -359,14 +400,15 @@
     switch ($mode) { case FRAME:
 ?>
         <frameset cols="300px,*">
-            <frame name="tree" <?php echo ('src="?mode=1"'); ?> />
-            <frame name="editor" <?php echo ('src="?mode=2"'); ?> />
-        </frameset><noframes></noframes>
+            <frame name="tree" <?php echo 'src="?mode=1"'; ?> />
+            <frame name="editor" <?php echo 'src="?mode=2"'; ?> />
+        </frameset>
+        <noframes></noframes>
 <?php
     break; case TREE:
-        $dts=disk_total_space(getcwd());
-        $dpf=($dts!=0)?round(disk_free_space(getcwd())/$dts*100,2):0; //calculate disk space
-        $phv=phpversion();
+        $dts = disk_total_space ($cwd);
+        $dpf = ($dts!=0)?round(disk_free_space(getcwd())/$dts*100,2):0; //calculate disk space
+        $phv = phpversion();
 
         echo("<body class='tree'>
                 <p id='filetree_head' class='header'></p>
@@ -382,9 +424,8 @@
                         <input type='radio' name='act' value='archive'>
                         Archive
                     </label><br /><br />
-                    <input type='hidden' name='cwd' value='$c' />
+                    <input type='hidden' name='cwd' value='$cwd' />
                     <input type='hidden' name='mode' value='5' />
-                    <input type='hidden' name='fcount' value='$i' />
                     <input type='submit' />
                 </form>
                 <form method='post' target='tree' action='?mode=7'
@@ -405,7 +446,7 @@
                         <tr><td></td>
                             <td>
                                 <input type='hidden' name='mode' value='7' />
-                                <input type='hidden' name='cwd' value='$c' />
+                                <input type='hidden' name='cwd' value='$cwd' />
                                 <input type='submit' />
                             </td>
                         </tr>
@@ -422,118 +463,115 @@
                         </tr>
                         <tr><td>Param 1:</td>
                             <td>
-                                <input type='text' id='p1' name='p1' value='$c'/>
+                                <input type='text' id='param1' name='param1' value='$cwd'/>
                             </td>
                         </tr>
                         <tr><td>Param 2:</td>
                             <td>
-                                <input type='text' id='p2' name='p2' />
+                                <input type='text' id='param2' name='param2' />
                             </td>
                         </tr>
                         <tr><td></td>
                             <td>
                                 <input type='hidden' name='mode' value='4' />
-                                <input type='hidden' name='cwd' value='$c' />
+                                <input type='hidden' name='cwd' value='$cwd' />
                                 <input type='submit' />
                             </td>
                         </tr>
                     </table>
                 </form>
-                <p>Commands: chmod(p1,p2), cp(p1,p2), delete(p1), exec(p1),
-                    mkdir(p1), mkfile(p1), mv(p1,p2),
-                    rename(p1,p2), rmdir(p1), touch(p1)</p>
+                <p>Commands: chmod(param1,param2), cp(param1,param2), delete(param1), exec(param1),
+                    mkdir(param1), mkfile(param1), mv(param1,param2),
+                    rename(param1,param2), rmdir(param1), touch(param1)</p>
                 <hr />
                 <p> PHP File Browser by Brian Lai.
                     <a href='https://github.com/1337/php-file-browser'>Get a copy!</a>
                 </p>
             </body>
         </html>");
-?>
-<?php
+?><?php
     break; case EDITOR:
-        if ($f) { // if I need to open/save a file then show...
-            if (isset($_POST['p'])) { // save?
-                $p=$_POST['p'];
+        if (!strlen ($file) || !is_file ($file)) { // if I need to open/save a file then show...
+            die ("To begin, click on a file name in the file panel.");
+        }
+        
+        if (vars ('content')) { // save?
+            $content = vars ('content');
 
-                $pr = false;
-                //pretend this is a backup
-                if (BACKUP_BEFORE_SAVING) {
-                    $pcd = date('ymd');
-                    if (!file_exists ("$c/$f.b$pcd.bak")) { // copy only if not exists (saves first file of date)
-                        $pr = @copy ("$c/$f","$c/$f.b$pcd.bak");
-                    }
-                    @chmod ("$c/$f.b$pcd.bak", fileperms (__FILE__)); // inherit file permissions
+            //pretend this is a backup
+            if ($config['BACKUP_BEFORE_SAVING'] === true) {
+                if (!file_exists ($file->backup_file ())) { // copy only if not exists (saves first file of date)
+                    copy ($file, $file->backup_file ());
                 }
-
-                if ($pr == BACKUP_BEFORE_SAVING) {
-                    $fh = @fopen("$c/$f", 'w') or die();
-                    @fwrite ($fh, stripslashes($p));
-                    fclose ($fh);
-                    echo("<p>$c/<b>$f</b> is supposedly saved. (?)</p>");
-                } else {
-                    echo("<p><b>$f</b>
-                    is <span style='color:red'>NOT</b> saved.</p>");
-                }
+                chmod ( // inherit file permissions
+                    $file->backup_file (),
+                    fileperms (__FILE__)
+                );
             }
 
-            $fh = @fopen ("$c/$f", 'r') or die('Failed to read file.');
-            $p = @fread ($fh, @filesize("$c/$f")); //the @ is required because fread complains about a 0-len read
-            fclose ($fh);
-
-            echo("  <body style='overflow: hidden;'>
-                        <form method='post'>
-                            <textarea class='php editor'
-                                       name='p'
-                                         id='p'
-                                      style='width:100%;height:100%;'>" .
-                                htmlspecialchars ($p) . "</textarea><input type='hidden' name='cwd' value='$c' />
-                            <input type='hidden' name='file' value='$f' />
-                            <input type='hidden' name='mode' value='2' />
-                            <input type='submit' name='save' id='save' value='Save' style='display:none' />
-                        </form>
-                    </body>
-                </html>");
+            $pr = file_put_contents ($file, $content);
+            if ($pr === false) {
+                echo("<p><b>$file</b> was <span style='color:red'>NOT</b> saved.</p>");
+            } else {
+                echo("<p><b>$file</b> is supposedly saved.</p>");
+            }
         }
-?>
-<?php
+
+        $content = file_get_contents ($file);
+
+        echo("  <body style='overflow: hidden;'>
+                    <form method='post'>
+                        <textarea class='php editor'
+                                   name='content'
+                                     id='content'
+                                  style='width:100%;height:100%;'>" .
+                            htmlspecialchars ($content) . "</textarea>
+                        <input type='hidden' name='cwd' value='$cwd' />
+                        <input type='hidden' name='file' value='$file' />
+                        <input type='hidden' name='mode' value='2' />
+                        <input type='submit' name='save' id='save' 
+                               value='Save' style='display:none' />
+                    </form>
+                </body>
+            </html>");
+?><?php
     break; case DOWNLOAD: // will fail if server RAM limit < filesize
         header ("Content-type: application/force-download");
         header ("Content-Disposition: attachment; filename=\"$f\"");
-        // header ("Content-Length: " . @filesize("$c/$f"));
-        @readfile ("$c/$f");
+        // header ("Content-Length: " . @filesize($cwd . '/' . $file));
+        @readfile ($file);
         exit();
-?>
-<?php
+?><?php
     break; case COMMAND_LINE:
 
         // transform params
-        $p1 = htmlspecialchars(urldecode ($p1));
-        $p2 = htmlspecialchars(urldecode ($p2));
+        $param1 = htmlspecialchars (urldecode ($param1));
+        $param2 = htmlspecialchars (urldecode ($param2));
 
-        switch (strtolower ($a)) {
+        switch (strtolower ($act)) {
             case 'mv'; case 'rename':
-                rename ($p1, $p2);
+                rename ($param1, $param2);
                 break;
             case 'chmod':
-                chmod ($p1, $p2);
+                chmod ($param1, $param2);
                 break;
             case 'cp':
-                copy ($p1, $p2);
+                copy ($param1, $param2);
                 break;
             case 'exec':
-                exec ($p1);
+                exec ($param1);
                 break;
             case 'mkdir':
-                mkdir ($p1);
+                mkdir ($param1);
                 break;
             case 'mkfile'; case 'touch':
-                touch ($p1);
+                touch ($param1);
                 break;
             case 'delete'; case 'rm':
-                unlink ($p1);
+                unlink ($param1);
                 break;
             case 'rmdir':
-                rmdir ($p1);
+                rmdir ($param1);
                 break;
             default:
                 die("No such command: $act");
@@ -542,87 +580,80 @@
 
         $cf = basename ($_SERVER['SCRIPT_FILENAME']);
         $pf = 'http://' . $_SERVER['SERVER_NAME'];
-
-        header ("location: $pf/$cf?cwd=$c&file=$f&mode=1");
-?>
-<?php
+        header ("location: $pf/$cf?cwd=$cwd&file=$filebase&mode=1");
+?><?php
     break; case GROUP_ACTIONS:
-        $ub = $_POST['fcount']; //upper bound of files in pane
-        if (!$ub) die(); // do not proceed if you don't have anything to do
+        $i = 0;
+        do {
+            $i++;
+            $param1 = vars ('c' . $i); // these are not the same params as mode 4
+            $param2 = vars ('f' . $i);
 
-        for ($i=1; $i<=$ub; $i++) {
-            $p1 = $_POST["c$i"]; // these are not the same params as mode 4
-            $p2 = $_POST["f$i"];
-
-            if ($p1 == '1') { // checkbox for this file is enabled
+            if ($param1 === '1') { // checkbox for this file is enabled
                 switch (strtolower ($a)) {
                     case 'delete'; case 'rm'; case 'rmdir':
-                        unlink ($p2);
+                        unlink ($param2);
                         break;
                     case 'archive':
                         $pcd = date('ymd');
-                        mkdir ("$c/archive.b$pcd/");
-                        rename ($p2, "$c/archive.b$pcd/" . basename ($p2));
+                        mkdir ("$cwd/archive.b$pcd/");
+                        rename ($param2, "$cwd/archive.b$pcd/" . basename ($param2));
                     default:
                 }
             }
-        }
+        } while (vars ('c' . $i));
 
         $cf = basename ($_SERVER['SCRIPT_FILENAME']);
         $pf = 'http://' . $_SERVER['SERVER_NAME'];
 
-        header ("location: $pf/$cf?cwd=$c&file=$f&mode=1");
-?>
-<?php
+        header ("location: $pf/$cf?cwd=$cwd&file=$filebase&mode=1");
+?><?php
     break; case DOWNLOAD_HERE: // current folder, download only
-        $cwd = getcwd ();
+        $files = $cwd->files (FILES_ONLY);
         echo("<body>
                 <p class='header'>
-                    <b>" . basename ($c) . "</b>
+                    <b>" . basename ((string) $cwd) . "</b>
                 </p>
                 <table cellspacing='0'
                        cellpadding='2'
                        style='display:block;margin:auto;width:500px;'>");
 
-        $da = filelist ($c,1);
         $i = 0;
-        foreach ($da as $pn) {
-            if (substr($pn,0,1) != '.') { // don't show hidden files
+        foreach ($files as $idx => $pn) {
+            if ($pn[0] !== '.') { // don't show hidden files
                 $i++;
 
-                printf ("    <tr %s>
-                                <td style='width:100%%;'>
-                                    <a href='?file=$pn&amp;mode=3' target='_blank'>$pn</a>
-                                </td>
-                            </tr>",
+                printf ("<tr %s>
+                            <td style='width:100%%;'>
+                                <a href='?file=$pn&amp;mode=3' target='_blank'>$pn</a>
+                            </td>
+                         </tr>",
                         (($i % 2 == 0)? "style='background-color:#eee;'": ''));
             }
         }
         echo("      </table>
                 </body>
             </html>");
-?>
-<?php
+?><?php
     break; case UPLOAD_HERE:
         // this provides no feedback, and overwrites any files.
         if (isset ($_FILES['fileobj'])) {
             if (isset ($_POST['overwrite']) && $_POST['overwrite'] == '1') {
                 // upload if file exists (too).
                 move_uploaded_file ($_FILES['fileobj']['tmp_name'],
-                            "$c/" . $_FILES['fileobj']['name']);
+                            "$cwd/" . $_FILES['fileobj']['name']);
             } else {
                 // upload if file doesn't exist.
-                if (!file_exists ("$c/" . $_FILES['fileobj']['name'])) {
+                if (!file_exists ("$cwd/" . $_FILES['fileobj']['name'])) {
                     move_uploaded_file ($_FILES['fileobj']['tmp_name'],
-                                "$c/" . $_FILES['fileobj']['name']);
+                                "$cwd/" . $_FILES['fileobj']['name']);
                 }
             }
         }
         $cf = basename ($_SERVER['SCRIPT_FILENAME']);
         $pf = 'http://' . $_SERVER['SERVER_NAME'];
-        header ("location: $pf/$cf?cwd=$c&file=$f&mode=1");
-?>
-<?php
+        header ("location: $pf/$cf?cwd=$cwd&file=$filebase&mode=1");
+?><?php
     break; case LOGIN:
         // login window to set login cookies
         // if no cookie is set, all modes will redirect here.
@@ -647,72 +678,63 @@
                         </div>
                     </body>
                 </html>");
-?>
-<?php
+?><?php
     break; case AJAX_FILE_TRANSFER:
         if ($f) { // if I need to open/save a file then show...
-            if (isset($_POST['p'])) { // save?
-                $p=$_POST['p'];
+            if (vars ('content')) { // save?
+                $content = vars ('content');
 
                 $pr = false;
                 //pretend this is a backup
                 if (BACKUP_BEFORE_SAVING) {
                     $pcd = date('ymd');
-                    if (!file_exists ("$c/$f.b$pcd.bak")) { // copy only if not exists (saves first file of date)
-                        $pr = @copy ("$c/$f","$c/$f.b$pcd.bak");
+                    if (!file_exists ("$file.b$pcd.bak")) { // copy only if not exists (saves first file of date)
+                        $pr = @copy ($file,"$file.b$pcd.bak");
                     }
-                    @chmod ("$c/$f.b$pcd.bak", fileperms (__FILE__)); // inherit file permissions
+                    @chmod ("$file.b$pcd.bak", fileperms (__FILE__)); // inherit file permissions
                 }
 
-                if ($pr == BACKUP_BEFORE_SAVING) {
-                    $fh = @fopen("$c/$f", 'w') or die();
-                    @fwrite ($fh, stripslashes($p));
-                    fclose ($fh);
-                    echo ("Saved.");
+                if (file_get_contents ($file, $content) === false) {
+                    echo ("Failed to save $file !");
                 } else {
-                    echo ("Failed to save $cwd/$f !");
+                    echo ("Saved.");
                 }
             }
         }
-?>
-<?php
-    break; case JSON_TREE: // return JSON file list of a given folder.
-        switch ($p1) { // parameter 1 (p1); optional
-            case '0': // dirs
-                $da = filelist ($c, 0);
-                break;
-            case '1': // files
-                $da = filelist ($c, 1);
-                break;
-            case '2': // everything
-            default:
-                $da = array_merge (filelist ($c, 0),filelist ($c, 1));
-                break;
-        }
+?><?php
+    break; case JSON_TREE:
+        // return JSON file list of a given folder.
+        $files = $cwd->files ((int) $param1); // defaults to show everything
         $output = array ();
-        foreach ($da as $pn) {
-            $ft = is_dir ("$c/$pn") ? "dir" : "file";
-            $fs = is_file ("$c/$pn") ? filesize_natural (@filesize ("$c/$pn")) : "";
-            try {
-                $fp = fileperm ("$c/$pn");
-            } catch (Exception $e) {
-                $fp = '0000';
+        foreach ($files as $file) {
+            if (is_file ($file)) {
+                $file_object = new FileTools ($cwd, $file);
+                $output[] = array (
+                    'name' => basename ($file_object),
+                    'path' => (string) $cwd,
+                    'type' => 'file',
+                    'size' => $file_object->natural_size (),
+                    'perm' => $file_object->perms ()
+                );
+            } else if (is_dir ($file)) {
+                $dir_object = new DirTools ($file);
+                $output[] = array (
+                    'name' => basename ($dir_object),
+                    'path' => (string) $cwd,
+                    'type' => 'dir',
+                    'size' => '',
+                    'perm' => $dir_object->perms ()
+                );
             }
-            $output[] = array (
-                'name' => $pn,
-                'path' => $cwd,
-                'type' => $ft,
-                'size' => $fs,
-                'perm' => $fp,
-            );
         }
-        header ("Content-type: application/json");
+        // header ("Content-type: application/json");
         echo (json_encode ($output));
-?>
-<?php
+?><?php
     break; case DEBUG:
         // what do you want to debug?
     break; default:
     }
+    
+    
     die (); // prevent printing EOF space
 ?>
