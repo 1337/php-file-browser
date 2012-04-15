@@ -1,75 +1,64 @@
 <?php
-    /*  Browser V4.00 (CC 3.0, MIT) 2012 Brian Lai
+    /*  PHP File Browser (GPLv3) 2012 Brian Lai
         Code IDE with built-in version tracking
-    
+
         Do not edit this script with itself.
     */
-    // settings
-    define ("THINC_BROWSER_VERSION", 5.00);
-    
-    // make the interface change colour.
-    $hostname = gethostbyaddr($_SERVER['REMOTE_ADDR']);
-    define ("HIGHLIGHT", "#3399ee"); // any html colour will do
-    define ("BACKUP_BEFORE_SAVING", true);
-    define ("SHOW_HIDDEN_OBJECTS", true); //only checks if objects' names begin with '.'
-    define ("SHOW_BACKUP_OBJECTS", false); //remove .b??????.bak files from the list
-    define ("CHECK_PASSWORD", false); //show login window if...
-     
-    // vars
-    $a = isset ($_GET['act']) ? $_GET['act']  : @$_POST['act'];
-    $c = isset ($_GET['cwd']) ? $_GET['cwd']  :(isset ($_POST['cwd']) ? $_POST['cwd'] : getcwd());
-    $m = isset ($_GET['mode'])? $_GET['mode'] :(isset ($_POST['mode'])? $_POST['mode']: 0);
-    $f = isset ($_GET['file'])? $_GET['file'] : @$_POST['file'];
-    $p1= isset ($_GET['p1'])  ? $_GET['p1']   : @$_POST['p1']; // params for $a
-    $p2= isset ($_GET['p2'])  ? $_GET['p2']   : @$_POST['p2'];
-    $un= isset ($_POST['username']) ? $_POST['username'] : @$_GET['username'];
-    $pw= isset ($_POST['password']) ? $_POST['password'] : @$_GET['password'];
-    
-    // add user / sha1(pass) combinations here.
-    if (CHECK_PASSWORD) {
-        $allowed_users = array (
+
+    // settings ===============================================================
+    $config = array (
+        'VERSION' => 5.1,
+        'HOSTNAME' => gethostbyaddr ($_SERVER['REMOTE_ADDR']),
+        'HIGHLIGHT' => '#3399ee', // any HTML colour will do
+        'BACKUP_BEFORE_SAVING' => true,
+        'SHOW_HIDDEN_OBJECTS' => true, //only checks if objects' names begin with '.'
+        'SHOW_BACKUP_OBJECTS' => false, //remove .b??????.bak files from the list
+        'CHECK_PASSWORD' => false, //show login window if...
+        'ALLOWED_USERS' => array (
+            // user => sha1 hash of the password
             'brian' => '526242588032599f491f36c10137c88c076384ef',
             'guest' => '787373e81b9e76715abeae529faf9a0a9dbf5079'
+        )
+    );
+
+    // functions ==============================================================
+    function vars ($index = false, $default = null) {
+        // gathers everything from the request.
+        // see cached version of this function: github.com/1337/pop
+        @session_start ();
+        $vars = (array) array_merge (
+            (array) $_COOKIE,
+            (array) $_SESSION,
+            (array) $_POST,
+            (array) $_GET
         );
-        if (strlen ($un) > 0) { // login request
-            if (array_key_exists ($un, $allowed_users) && 
-               (sha1 ($pw) == $allowed_users[$un])) { // basically, password check
-                setcookie ("username", $un, time() + 36000);
-                setcookie ("password", $pw, time() + 36000);
-            } else {
-                $m = 8; // wrong password, switch to mode 8 (login window)
-            }
-        } else {
-            if (isset ($_COOKIE["username"]) && isset ($_COOKIE["password"]) && 
-                array_key_exists ($_COOKIE["username"], $allowed_users) && 
-                $allowed_users[$_COOKIE["username"]] == sha1 ($_COOKIE["password"])) {
-                // do nothing. user is authenticated.
-            } else {
-                // user not logged in or password is wrong
-                $m = 8; // switch to mode 8 (login window)
-            }    
+        if ($index === false) {
+            return $vars; // return cache if it exists
         }
+        if (isset ($vars[$index])) {
+            return $vars[$index];
+        }
+        // everyone else would have returned by now
+        return $default;
     }
 
-    chdir ($c); // because
-    
     function filelist ($base, $what = 2) {
         /*  what
             0 = dirs only
             1 = files only
             2 = everything  */
         $da = array();
-        $mdr = opendir($base);                  // open this directory 
+        $mdr = opendir($base);                  // open this directory
         while($fn = readdir($mdr)) {            // get each entry
             if (is_dir ($fn)) {
-                if (($what == 0 || $what == 2) && 
-                    $fn != '.' && 
+                if (($what == 0 || $what == 2) &&
+                    $fn != '.' &&
                     $fn != '..') {
                     if (SHOW_HIDDEN_OBJECTS || substr ($fn,0,1) != '.') {
                         $da[] = $fn;
                     }
                 }
-            } elseif (is_file ($fn)) {
+            } else if (is_file ($fn)) {
                 if ($what == 1 || $what == 2) {
                     if (SHOW_HIDDEN_OBJECTS || substr ($fn,0,1) != '.') {
                         $da[] = $fn;
@@ -77,25 +66,25 @@
                 }
             }
         }
-        closedir($mdr);                         // close directory
-        $indexCount = count($da);               // count elements in array
-        if($indexCount>0) {
-            sort($da);                          // sort will explode if count=0
+        closedir ($mdr); // close directory
+        $index_count = sizeof ($da); // count elements in array
+        if ($index_count > 0) {
+            sort ($da); // sort will explode if count=0
             if (SHOW_BACKUP_OBJECTS != true) {
                 $da = array_filter ($da, "filterbackupobjects");
             }
         }
         return $da;
     }
-    
+
     function filterbackupobjects($var) {
         return !(substr ($var, -4, 4) == '.bak');
     }
-    
+
     function extension ($filename) {
         return pathinfo($filename, PATHINFO_EXTENSION);
     }
-    
+
     function fileperm ($filename) {
         return substr(sprintf('%o', fileperms($filename)), -4);
     }
@@ -113,7 +102,41 @@
         }
         return $bytes;
     }
-    
+
+    // public subs ============================================================
+    $act = vars ('act');
+    $cwd = vars ('cwd', getcwd());
+    $mode = vars ('mode', 0); // 0 = frame page
+    $file = vars ('file');
+    $p1 = vars ('p1'); // params for $act
+    $p2 = vars ('p2');
+    $username = vars ('username');
+    $password = vars ('password');
+
+    // add user / sha1(pass) combinations here.
+    if ($config['CHECK_PASSWORD'] === true) {
+        if (strlen ($username) > 0) { // login request
+            if (array_key_exists ($username, $config['ALLOWED_USERS']) &&
+               (sha1 ($password) === $config['ALLOWED_USERS'][$username])) { // basically, password check
+                setcookie ("username", $username, time() + 36000);
+                setcookie ("password", $password, time() + 36000);
+            } else {
+                $mode = 8; // wrong password, switch to mode 8 (login window)
+            }
+        } else {
+            if (isset ($_COOKIE["username"]) && isset ($_COOKIE["password"]) &&
+                array_key_exists ($_COOKIE["username"], $config['ALLOWED_USERS']) &&
+                $config['ALLOWED_USERS'][$_COOKIE["username"]] == sha1 ($_COOKIE["password"])) {
+                // do nothing. user is authenticated.
+            } else {
+                // user not logged in or password is wrong
+                $mode = 8; // switch to mode 8 (login window)
+            }
+        }
+    }
+
+    chdir ($cwd); // because
+
     /*  modes
         0   frame                   -
         1   tree                    tree / editor
@@ -128,10 +151,7 @@
         10  ajax JSON filelist      tree
         99    debug
     */
-    if ($m==0 || 
-        $m==1 || 
-        $m==2 || 
-        $m==6) { // modes with html heads
+    if (in_array ($mode, array (0, 1, 2, 6)) { // modes with html heads
 ?>
         <html>
             <head>
@@ -168,7 +188,7 @@
                         font-size: 14pt;
                         color: <?php echo (HIGHLIGHT); ?>;
                         vertical-align:top; }
-                    .small { 
+                    .small {
                         font-size: 10px; }
                     html .CodeMirror, html .CodeMirror * {
                         font-family: 'Droid Sans Mono', monaco, consolas, monospace;
@@ -186,7 +206,7 @@
                         this.onload=this.onreadystatechange=null;--d||b()}},f=document.getElementsByTagName("head")[0],
                         g=function(a){var b=document.createElement("script");b.async=true;
                         b.src=a;b.onload=b.onreadystatechange=e;f.appendChild(b)};c;)g(a[--c])};
-                    
+
                     var populate_tree = null;
                     var populate_tree_ex = null;
                     var my_save = null;
@@ -199,12 +219,12 @@
                                 return s.replace(/[a-zA-Z]/g,function(c){
                                 return String.fromCharCode((c<="Z"?90:122)>=(c=c.charCodeAt(0)+13)?c:c-26);})
                             };
-                            
+
                             // global
                             parent_path = function (path) {
                                 return path.substr(0, path.lastIndexOf('/'));
                             }
-                            
+
                             // global
                             my_save = function (id) {
                                 $.ajax({
@@ -225,7 +245,7 @@
                                     dataType: 'html'
                                 });
                             };
-                            
+
                             // global
                             populate_tree_ex = function (id, path) {
                                 $.getJSON ('<?php echo basename (__FILE__); ?>', {
@@ -235,49 +255,49 @@
                                         populate_tree (id, data);
                                     }
                                 );
-                                $('#filetree_head').html ('<a href="#" onclick="javascript:populate_tree_ex(\'' + id + '\', \'' + parent_path (path) + '\');">' + 
-                                    "<img src='http://img707.imageshack.us/img707/1033/iconfolderup.gif' /" + ">" + 
+                                $('#filetree_head').html ('<a href="#" onclick="javascript:populate_tree_ex(\'' + id + '\', \'' + parent_path (path) + '\');">' +
+                                    "<img src='http://img707.imageshack.us/img707/1033/iconfolderup.gif' /" + ">" +
                                     "</a><b>" + path + "</b>"
                                 );
                             };
-                            
+
                             // global
                             populate_tree = function (id, data) {
                                 var ctl = $('#' + id);
                                 var i = 0;
                                 var path_style = 'border-left: 3px <?php echo HIGHLIGHT; ?> solid; font-weight: bold;';
                                 var file_style = '';
-                                
+
                                 ctl.html (""); // clear it
                                 for (x in data) {
                                     i++;
                                     if (data[x].type == 'dir') { // folder
                                         var fi = data[x].perm;
                                         var isdir = true;
-                                        var link = '<a href="#" onclick="javascript:populate_tree_ex(\'' + id + '\', \'' + data[x].path + '/' + data[x].name + '\');">' + 
-                                                       data[x].name + 
+                                        var link = '<a href="#" onclick="javascript:populate_tree_ex(\'' + id + '\', \'' + data[x].path + '/' + data[x].name + '\');">' +
+                                                       data[x].name +
                                                    '</a>';
                                     } else { // file
                                         var fi = '<a href="?file=' + data[x].name + '&amp;mode=3">' + data[x].size + '</a>';
                                         var isdir = false;
-                                        var link = '<a href="?cwd=' + data[x].path + 
-                                                     '&amp;file=' + data[x].name + 
-                                                     '&amp;mode=2" ' + 
+                                        var link = '<a href="?cwd=' + data[x].path +
+                                                     '&amp;file=' + data[x].name +
+                                                     '&amp;mode=2" ' +
                                                      'target="editor">' + data[x].name + '</a>';
                                     }
                                     ctl.append (
-                                        '<tr ' + (!(i % 2)? "style='background-color:rgba(255,255,255,0.1);'": '') + '>' + 
-                                            '<td style="' + (isdir ? path_style : file_style) + '">' + 
-                                                '<input type="checkbox" name="c' + i + '" value="1" /' + '>' + 
-                                                '<input type="hidden" name="f' + i + '" ' + 
-                                                       'value="' + data[x].path + '/' + data[x].name + '" /' + '>' + 
-                                            '</td>' + 
-                                            '<td style="width:100%;padding: 10px 3px 3px 6px;">' + 
-                                                link + 
+                                        '<tr ' + (!(i % 2)? "style='background-color:rgba(255,255,255,0.1);'": '') + '>' +
+                                            '<td style="' + (isdir ? path_style : file_style) + '">' +
+                                                '<input type="checkbox" name="c' + i + '" value="1" /' + '>' +
+                                                '<input type="hidden" name="f' + i + '" ' +
+                                                       'value="' + data[x].path + '/' + data[x].name + '" /' + '>' +
+                                            '</td>' +
+                                            '<td style="width:100%;padding: 10px 3px 3px 6px;">' +
+                                                link +
                                                 '<span class="small" style="float: right">' +
-                                                    fi + 
-                                                '</span>' + 
-                                            '</td>' + 
+                                                    fi +
+                                                '</span>' +
+                                            '</td>' +
                                         '</tr>'
                                     );
                                 }
@@ -285,7 +305,7 @@
 
                             if ($('#p').length >= 1) {
                                 /* editAreaLoader.init({
-                                    id: "p" // id of the textarea to transform      
+                                    id: "p" // id of the textarea to transform
                                     ,start_highlight: true  // if start with highlight
                                     ,allow_toggle: false
                                     ,word_wrap: false
@@ -310,9 +330,9 @@
                                     value: $('#p').val()
                                 });
                             }
-                            
+
                             if ($('#filetree').length >= 1) {
-                                populate_tree_ex ('filetree', '<?php echo $c; ?>');
+                                populate_tree_ex ('filetree', '<?php echo $cwd; ?>');
                             }
                         });
                     });
@@ -329,7 +349,7 @@
         </frameset><noframes></noframes>
 <?php
     break; case 1:
-        // tree 
+        // tree
         $dts=disk_total_space(getcwd());
         $dpf=($dts!=0)?round(disk_free_space(getcwd())/$dts*100,2):0; //calculate disk space
         $phv=phpversion();
@@ -405,8 +425,8 @@
                         </tr>
                     </table>
                 </form>
-                <p>Commands: chmod(p1,p2), cp(p1,p2), delete(p1), exec(p1), 
-                    mkdir(p1), mkfile(p1), mv(p1,p2), 
+                <p>Commands: chmod(p1,p2), cp(p1,p2), delete(p1), exec(p1),
+                    mkdir(p1), mkfile(p1), mv(p1,p2),
                     rename(p1,p2), rmdir(p1), touch(p1)</p>
                 <hr />
                 <p> PHP File Browser by Brian Lai.
@@ -421,8 +441,8 @@
         if ($f) { // if I need to open/save a file then show...
             if (isset($_POST['p'])) { // save?
                 $p=$_POST['p'];
-               
-                $pr = false; 
+
+                $pr = false;
                 //pretend this is a backup
                 if (BACKUP_BEFORE_SAVING) {
                     $pcd = date('ymd');
@@ -431,28 +451,28 @@
                     }
                     @chmod ("$c/$f.b$pcd.bak", fileperms (__FILE__)); // inherit file permissions
                 }
-                
+
                 if ($pr == BACKUP_BEFORE_SAVING) {
                     $fh = @fopen("$c/$f", 'w') or die();
                     @fwrite ($fh, stripslashes($p));
                     fclose ($fh);
-                    echo("<p>$c/<b>$f</b> is supposedly saved. (?)</p>");  
+                    echo("<p>$c/<b>$f</b> is supposedly saved. (?)</p>");
                 } else {
-                    echo("<p><b>$f</b> 
-                    is <span style='color:red'>NOT</b> saved.</p>");  
-                }  
-            } 
+                    echo("<p><b>$f</b>
+                    is <span style='color:red'>NOT</b> saved.</p>");
+                }
+            }
 
             $fh = @fopen ("$c/$f", 'r') or die('Failed to read file.');
             $p = @fread ($fh, @filesize("$c/$f")); //the @ is required because fread complains about a 0-len read
             fclose ($fh);
-            
+
             echo("  <body style='overflow: hidden;'>
                         <form method='post'>
-                            <textarea class='php editor' 
-                                       name='p' 
+                            <textarea class='php editor'
+                                       name='p'
                                          id='p'
-                                      style='width:100%;height:100%;'>" . 
+                                      style='width:100%;height:100%;'>" .
                                 htmlspecialchars ($p) . "</textarea><input type='hidden' name='cwd' value='$c' />
                             <input type='hidden' name='file' value='$f' />
                             <input type='hidden' name='mode' value='2' />
@@ -505,7 +525,7 @@
                 rmdir ($p1);
                 break;
             default:
-                die("No such command: $a");
+                die("No such command: $act");
                 exit();
         }
 
@@ -517,14 +537,14 @@
 <?php
     break; case 5:
         // group actions
-        
+
         $ub = $_POST['fcount']; //upper bound of files in pane
         if (!$ub) die(); // do not proceed if you don't have anything to do
-        
+
         for ($i=1; $i<=$ub; $i++) {
             $p1 = $_POST["c$i"]; // these are not the same params as mode 4
             $p2 = $_POST["f$i"];
-            
+
             if ($p1 == '1') { // checkbox for this file is enabled
                 switch (strtolower ($a)) {
                     case 'delete'; case 'rm'; case 'rmdir':
@@ -547,13 +567,13 @@
 <?php
     break; case 6:
         // current folder, download only
-        $c = getcwd ();
+        $cwd = getcwd ();
         echo("<body>
                 <p class='header'>
                     <b>" . basename ($c) . "</b>
                 </p>
-                <table cellspacing='0' 
-                       cellpadding='2' 
+                <table cellspacing='0'
+                       cellpadding='2'
                        style='display:block;margin:auto;width:500px;'>");
 
         $da = filelist ($c,1);
@@ -581,12 +601,12 @@
         if (isset ($_FILES['fileobj'])) {
             if (isset ($_POST['overwrite']) && $_POST['overwrite'] == '1') {
                 // upload if file exists (too).
-                move_uploaded_file ($_FILES['fileobj']['tmp_name'], 
+                move_uploaded_file ($_FILES['fileobj']['tmp_name'],
                             "$c/" . $_FILES['fileobj']['name']);
             } else {
                 // upload if file doesn't exist.
                 if (!file_exists ("$c/" . $_FILES['fileobj']['name'])) {
-                    move_uploaded_file ($_FILES['fileobj']['tmp_name'], 
+                    move_uploaded_file ($_FILES['fileobj']['tmp_name'],
                                 "$c/" . $_FILES['fileobj']['name']);
                 }
             }
@@ -627,8 +647,8 @@
         if ($f) { // if I need to open/save a file then show...
             if (isset($_POST['p'])) { // save?
                 $p=$_POST['p'];
-               
-                $pr = false; 
+
+                $pr = false;
                 //pretend this is a backup
                 if (BACKUP_BEFORE_SAVING) {
                     $pcd = date('ymd');
@@ -637,22 +657,22 @@
                     }
                     @chmod ("$c/$f.b$pcd.bak", fileperms (__FILE__)); // inherit file permissions
                 }
-                
+
                 if ($pr == BACKUP_BEFORE_SAVING) {
                     $fh = @fopen("$c/$f", 'w') or die();
                     @fwrite ($fh, stripslashes($p));
                     fclose ($fh);
                     echo ("Saved.");
                 } else {
-                    echo ("Failed to save $c/$f !");
-                }  
-            } 
+                    echo ("Failed to save $cwd/$f !");
+                }
+            }
         }
 ?>
 <?php
     break; case 10:
         // return JSON file list of a given folder.
-        
+
         switch ($p1) { // parameter 1 (p1); optional
             case '0': // dirs
                 $da = filelist ($c, 0);
@@ -676,7 +696,7 @@
             }
             $output[] = array (
                 'name' => $pn,
-                'path' => $c,
+                'path' => $cwd,
                 'type' => $ft,
                 'size' => $fs,
                 'perm' => $fp,
