@@ -6,6 +6,35 @@
     */
 
     // settings ===============================================================
+    error_reporting (E_ALL);
+
+    /*  modes
+        0   frame                   -
+        1   tree                    tree / editor
+        2   editor                  editor
+        3   download                _blank
+        4   actions: commands       -
+        5   actions: group actions  -
+        6   current dir, download   -
+        7   current dir, upload     tree
+        8   login window (set cookies)
+        9   ajax file transfer (accepts $_POST)
+        10  ajax JSON filelist      tree
+        99    debug
+    */
+    define ('FRAME', 0);
+    define ('TREE', 1);
+    define ('EDITOR', 2);
+    define ('DOWNLOAD', 3);
+    define ('COMMAND_LINE', 4);
+    define ('GROUP_ACTIONS', 5);
+    define ('DOWNLOAD_HERE', 6);
+    define ('UPLOAD_HERE', 7);
+    define ('LOGIN', 8);
+    define ('AJAX_FILE_TRANSFER', 9);
+    define ('JSON_TREE', 10);
+    define ('DEBUG', 99);
+
     $config = array (
         'VERSION' => 5.1,
         'HOSTNAME' => gethostbyaddr ($_SERVER['REMOTE_ADDR']),
@@ -47,20 +76,20 @@
             0 = dirs only
             1 = files only
             2 = everything  */
-        $da = array();
-        $mdr = opendir($base);                  // open this directory
-        while($fn = readdir($mdr)) {            // get each entry
+        $da = array ();
+        $mdr = opendir ($base);                  // open this directory
+        while ($fn = readdir($mdr)) {            // get each entry
             if (is_dir ($fn)) {
                 if (($what == 0 || $what == 2) &&
                     $fn != '.' &&
                     $fn != '..') {
-                    if (SHOW_HIDDEN_OBJECTS || substr ($fn,0,1) != '.') {
+                    if ($config['SHOW_HIDDEN_OBJECTS'] || substr ($fn,0,1) != '.') {
                         $da[] = $fn;
                     }
                 }
             } else if (is_file ($fn)) {
                 if ($what == 1 || $what == 2) {
-                    if (SHOW_HIDDEN_OBJECTS || substr ($fn,0,1) != '.') {
+                    if ($config['SHOW_HIDDEN_OBJECTS'] || substr ($fn,0,1) != '.') {
                         $da[] = $fn;
                     }
                 }
@@ -71,22 +100,22 @@
         if ($index_count > 0) {
             sort ($da); // sort will explode if count=0
             if (SHOW_BACKUP_OBJECTS != true) {
-                $da = array_filter ($da, "filterbackupobjects");
+                $da = array_filter ($da, "filter_backup_objects");
             }
         }
         return $da;
     }
 
-    function filterbackupobjects($var) {
-        return !(substr ($var, -4, 4) == '.bak');
+    function filter_backup_objects ($var) {
+        return substr ($var, -4, 4) !== '.bak';
     }
 
     function extension ($filename) {
-        return pathinfo($filename, PATHINFO_EXTENSION);
+        return pathinfo ($filename, PATHINFO_EXTENSION);
     }
 
     function fileperm ($filename) {
-        return substr(sprintf('%o', fileperms($filename)), -4);
+        return substr( sprintf ('%o', fileperms($filename)), -4);
     }
 
     function filesize_natural ($bytes) {
@@ -136,22 +165,9 @@
     }
 
     chdir ($cwd); // because
-
-    /*  modes
-        0   frame                   -
-        1   tree                    tree / editor
-        2   editor                  editor
-        3   download                _blank
-        4   actions: commands       -
-        5   actions: group actions  -
-        6   current dir, download   -
-        7   current dir, upload     tree
-        8   login window (set cookies)
-        9   ajax file transfer (accepts $_POST)
-        10  ajax JSON filelist      tree
-        99    debug
-    */
-    if (in_array ($mode, array (0, 1, 2, 6)) { // modes with html heads
+    
+    // For modes with html heads, print head now.
+    if (in_array ($mode, array (FRAME, TREE, EDITOR, DOWNLOAD_HERE))) {
 ?>
         <html>
             <head>
@@ -340,16 +356,14 @@
             </head>
 <?php
     }
-    switch ($m) { case 0:
-        // frame
+    switch ($mode) { case FRAME:
 ?>
         <frameset cols="300px,*">
             <frame name="tree" <?php echo ('src="?mode=1"'); ?> />
             <frame name="editor" <?php echo ('src="?mode=2"'); ?> />
         </frameset><noframes></noframes>
 <?php
-    break; case 1:
-        // tree
+    break; case TREE:
         $dts=disk_total_space(getcwd());
         $dpf=($dts!=0)?round(disk_free_space(getcwd())/$dts*100,2):0; //calculate disk space
         $phv=phpversion();
@@ -436,8 +450,7 @@
         </html>");
 ?>
 <?php
-    break; case 2:
-        // editor
+    break; case EDITOR:
         if ($f) { // if I need to open/save a file then show...
             if (isset($_POST['p'])) { // save?
                 $p=$_POST['p'];
@@ -483,8 +496,7 @@
         }
 ?>
 <?php
-    break; case 3:
-        // download - will fail if server RAM limit < filesize
+    break; case DOWNLOAD: // will fail if server RAM limit < filesize
         header ("Content-type: application/force-download");
         header ("Content-Disposition: attachment; filename=\"$f\"");
         // header ("Content-Length: " . @filesize("$c/$f"));
@@ -492,8 +504,7 @@
         exit();
 ?>
 <?php
-    break; case 4:
-        // commands
+    break; case COMMAND_LINE:
 
         // transform params
         $p1 = htmlspecialchars(urldecode ($p1));
@@ -535,9 +546,7 @@
         header ("location: $pf/$cf?cwd=$c&file=$f&mode=1");
 ?>
 <?php
-    break; case 5:
-        // group actions
-
+    break; case GROUP_ACTIONS:
         $ub = $_POST['fcount']; //upper bound of files in pane
         if (!$ub) die(); // do not proceed if you don't have anything to do
 
@@ -565,8 +574,7 @@
         header ("location: $pf/$cf?cwd=$c&file=$f&mode=1");
 ?>
 <?php
-    break; case 6:
-        // current folder, download only
+    break; case DOWNLOAD_HERE: // current folder, download only
         $cwd = getcwd ();
         echo("<body>
                 <p class='header'>
@@ -595,8 +603,7 @@
             </html>");
 ?>
 <?php
-    break; case 7:
-        // current folder, upload only
+    break; case UPLOAD_HERE:
         // this provides no feedback, and overwrites any files.
         if (isset ($_FILES['fileobj'])) {
             if (isset ($_POST['overwrite']) && $_POST['overwrite'] == '1') {
@@ -616,7 +623,7 @@
         header ("location: $pf/$cf?cwd=$c&file=$f&mode=1");
 ?>
 <?php
-    break; case 8:
+    break; case LOGIN:
         // login window to set login cookies
         // if no cookie is set, all modes will redirect here.
         echo ("<html>
@@ -642,8 +649,7 @@
                 </html>");
 ?>
 <?php
-    break; case 9:
-        // ajax file upload
+    break; case AJAX_FILE_TRANSFER:
         if ($f) { // if I need to open/save a file then show...
             if (isset($_POST['p'])) { // save?
                 $p=$_POST['p'];
@@ -670,9 +676,7 @@
         }
 ?>
 <?php
-    break; case 10:
-        // return JSON file list of a given folder.
-
+    break; case JSON_TREE: // return JSON file list of a given folder.
         switch ($p1) { // parameter 1 (p1); optional
             case '0': // dirs
                 $da = filelist ($c, 0);
@@ -706,14 +710,9 @@
         echo (json_encode ($output));
 ?>
 <?php
-    break; case 99:
-        // debug
-        echo ("<pre>");
-        print_r ($_GET);
-        print_r ($_POST);
-        echo ("</pre>");
-?>
-<?php
+    break; case DEBUG:
+        // what do you want to debug?
     break; default:
     }
+    die (); // prevent printing EOF space
 ?>
