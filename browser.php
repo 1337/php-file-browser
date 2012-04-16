@@ -188,7 +188,7 @@
             }
             return $bytes;
         }
-        
+
         public function backup_file () {
             $pcd = date('ymd');
             return $this->directory . $this->filename . '.b' . $pcd . '.bak';
@@ -244,157 +244,136 @@
     // For modes with html heads, print head now.
     if (in_array ($mode, array (FRAME, TREE, EDITOR, DOWNLOAD_HERE))) {
 ?>
-        <html>
-            <head>
-                <link href='http://fonts.googleapis.com/css?family=Open+Sans' rel='stylesheet' type='text/css'>
-                <link href='http://fonts.googleapis.com/css?family=Droid+Sans+Mono' rel='stylesheet' type='text/css'>
-                <link href='https://raw.github.com/1337/php-file-browser/master/scripts/codemirror/lib/codemirror.css' rel='stylesheet' type='text/css'>
-                <link href='https://raw.github.com/1337/php-file-browser/master/scripts/codemirror/theme/monokai.css' rel='stylesheet' type='text/css'>
-                <script src='https://raw.github.com/1337/php-file-browser/master/scripts/codemirror/lib/codemirror.js'></script>
-                <style type="text/css">
-                    .tree {
-                        background-color: #454d50; }
-                        .tree * {
-                            color: #eee; }
-                    html, html * {
-                        font-family:'Open Sans', 'Segoe UI', Arial, sans-serif;
-                        font-size: 12px; }
-                    body {
-                        margin:0;
-                        padding:0; }
-                    a {
-                        text-decoration:none; }
-                        a:hover {
-                            text-decoration:underline; }
-                        a img {
-                            border:0; }
-                    .header {
-                        margin:0 0 5px 0;
-                        padding:5px;
-                        font-size: 14pt;
-                        color: <?php echo (HIGHLIGHT); ?>;
-                        vertical-align:top; }
-                    .small {
-                        font-size: 10px; }
-                    html .CodeMirror, html .CodeMirror * {
-                        font-family: 'Droid Sans Mono', monaco, consolas, monospace;
-                        font-size: 10pt;
-                    }
-                    .CodeMirror {
-                        width: 100%;
-                        height: 100%;
-                    }
-                </style>
-                <script type='text/javascript'>
-                    // http://blog.fedecarg.com/2011/07/12/javascript-asynchronous-script-loading-and-lazy-loading/
-                    var loader=function(a,b){b = b||function(){};for(var c=a.length,d=c,e=function(){
-                        if(!(this.readyState&&this.readyState!=="complete"&&this.readyState!=="loaded")){
-                        this.onload=this.onreadystatechange=null;--d||b()}},f=document.getElementsByTagName("head")[0],
-                        g=function(a){var b=document.createElement("script");b.async=true;
-                        b.src=a;b.onload=b.onreadystatechange=e;f.appendChild(b)};c;)g(a[--c])};
+        <html><head>
+            <link href='http://fonts.googleapis.com/css?family=Open+Sans' rel='stylesheet' type='text/css'>
+            <link href='http://fonts.googleapis.com/css?family=Droid+Sans+Mono' rel='stylesheet' type='text/css'>
+            <link href='https://raw.github.com/1337/php-file-browser/master/scripts/codemirror/lib/codemirror.css' rel='stylesheet' type='text/css'>
+            <link href='https://raw.github.com/1337/php-file-browser/master/scripts/codemirror/theme/monokai.css' rel='stylesheet' type='text/css'>
+            <script src='https://raw.github.com/1337/php-file-browser/master/scripts/codemirror/lib/codemirror.js'></script>
+            <style type="text/css">
+                .tree {
+                    background-color: #454d50; }
+                    .tree * {
+                        color: #eee; }
+                html, html * {
+                    font-family:'Open Sans', 'Segoe UI', Arial, sans-serif;
+                    font-size: 12px; }
+                body {
+                    margin:0;
+                    padding:0; }
+                a {
+                    text-decoration:none; }
+                    a:hover {
+                        text-decoration:underline; }
+                    a img {
+                        border:0; }
+                .header {
+                    margin:0 0 5px 0;
+                    padding:5px;
+                    font-size: 14pt;
+                    color: <?php echo (HIGHLIGHT); ?>;
+                    vertical-align:top; }
+                .small {
+                    font-size: 10px; }
+                html .CodeMirror, html .CodeMirror * {
+                    font-family: 'Droid Sans Mono', monaco, consolas, monospace;
+                    font-size: 10pt;
+                }
+                .CodeMirror {
+                    width: 100%;
+                    height: 100%;
+                }
+            </style>
+            <script type='text/javascript'>
+                // http://blog.fedecarg.com/2011/07/12/javascript-asynchronous-script-loading-and-lazy-loading/
+                var loader=function(a,b){b = b||function(){};for(var c=a.length,d=c,e=function(){
+                    if(!(this.readyState&&this.readyState!=="complete"&&this.readyState!=="loaded")){
+                    this.onload=this.onreadystatechange=null;--d||b()}},f=document.getElementsByTagName("head")[0],
+                    g=function(a){var b=document.createElement("script");b.async=true;
+                    b.src=a;b.onload=b.onreadystatechange=e;f.appendChild(b)};c;)g(a[--c])};
 
-                    var populate_tree = null;
-                    var populate_tree_ex = null;
-                    var parent_path = null;
+                var populate_tree = null;
+                var populate_tree_ex = null;
+                var parent_path = null;
 
-                    loader (['http://ajax.googleapis.com/ajax/libs/jquery/1.6.2/jquery.min.js',
-                             'https://raw.github.com/1337/php-file-browser/master/scripts/codemirror/mode/xml/xml.js',
-                             'https://raw.github.com/1337/php-file-browser/master/scripts/codemirror/mode/javascript/javascript.js',
-                             'https://raw.github.com/1337/php-file-browser/master/scripts/codemirror/mode/css/css.js',
-                             'https://raw.github.com/1337/php-file-browser/master/scripts/codemirror/mode/clike/clike.js',
-                             'https://raw.github.com/1337/php-file-browser/master/scripts/codemirror/mode/php/php.js'], function () {
-                        $(document).ready (function () {
-                            var rot13 = function (s) {
-                                return s.replace(/[a-zA-Z]/g,function(c){
-                                return String.fromCharCode((c<="Z"?90:122)>=(c=c.charCodeAt(0)+13)?c:c-26);})
-                            };
+                loader (['http://ajax.googleapis.com/ajax/libs/jquery/1.6.2/jquery.min.js'], function () {
+                    $(document).ready (function () {
+                        var rot13 = function (s) {
+                            return s.replace(/[a-zA-Z]/g,function(c){
+                            return String.fromCharCode((c<="Z"?90:122)>=(c=c.charCodeAt(0)+13)?c:c-26);})
+                        };
 
-                            // global
-                            parent_path = function (path) {
-                                return path.substr(0, path.lastIndexOf('/'));
-                            }
+                        // global
+                        parent_path = function (path) {
+                            return path.substr(0, path.lastIndexOf('/'));
+                        }
 
-                            // global
-                            populate_tree_ex = function (id, path) {
-                                $.getJSON ('<?php echo basename (__FILE__); ?>', {
-                                        'mode': '<?php echo JSON_TREE; ?>',
-                                        'cwd': path,
-                                        'param1': <?php echo DIRS_AND_FILES; ?>
-                                    }, function (data) {
-                                        populate_tree (id, data);
-                                    }
-                                );
-                                $('#filetree_head').html ('<a href="#" onclick="javascript:populate_tree_ex(\'' + id + '\', \'' + parent_path (path) + '\');">' +
-                                    "<img src='http://img707.imageshack.us/img707/1033/iconfolderup.gif' /" + ">" +
-                                    "</a><b>" + path + "</b>"
-                                );
-                            };
-
-                            // global
-                            populate_tree = function (id, data) {
-                                var ctl = $('#' + id);
-                                var i = 0;
-                                var path_style = 'border-left: 3px <?php echo $config['HIGHLIGHT']; ?> solid; font-weight: bold;';
-                                var file_style = '';
-
-                                ctl.html (""); // clear it
-                                for (x in data) {
-                                    i++;
-                                    if (data[x].type == 'dir') { // folder
-                                        var fi = data[x].perm;
-                                        var isdir = true;
-                                        var link = '<a href="#" onclick="javascript:populate_tree_ex(\'' + id + '\', \'' + data[x].path + '/' + data[x].name + '\');">' +
-                                                       data[x].name +
-                                                   '</a>';
-                                    } else { // file
-                                        var fi = '<a href="?file=' + data[x].name + '&amp;mode=3">' + data[x].size + '</a>';
-                                        var isdir = false;
-                                        var link = '<a href="?cwd=' + data[x].path +
-                                                     '&amp;file=' + data[x].name +
-                                                     '&amp;mode=2" ' +
-                                                     'target="editor">' + data[x].name + '</a>';
-                                    }
-                                    ctl.append (
-                                        '<tr ' + (!(i % 2)? "style='background-color:rgba(255,255,255,0.1);'": '') + '>' +
-                                            '<td style="' + (isdir ? path_style : file_style) + '">' +
-                                                '<input type="checkbox" name="c' + i + '" value="1" /' + '>' +
-                                                '<input type="hidden" name="f' + i + '" ' +
-                                                       'value="' + data[x].path + '/' + data[x].name + '" /' + '>' +
-                                            '</td>' +
-                                            '<td style="width:100%;padding: 10px 3px 3px 6px;">' +
-                                                link +
-                                                '<span class="small" style="float: right">' +
-                                                    fi +
-                                                '</span>' +
-                                            '</td>' +
-                                        '</tr>'
-                                    );
+                        // global
+                        populate_tree_ex = function (id, path) {
+                            $.getJSON ('<?php echo basename (__FILE__); ?>', {
+                                    'mode': '<?php echo JSON_TREE; ?>',
+                                    'cwd': path,
+                                    'param1': <?php echo DIRS_AND_FILES; ?>
+                                }, function (data) {
+                                    populate_tree (id, data);
                                 }
-                            };
+                            );
+                            $('#filetree_head').html ('<a href="#" onclick="javascript:populate_tree_ex(\'' + id + '\', \'' + parent_path (path) + '\');">' +
+                                "<img src='http://img707.imageshack.us/img707/1033/iconfolderup.gif' /" + ">" +
+                                "</a><b>" + path + "</b>"
+                            );
+                        };
 
-                            if ($('#content').length >= 1) {
-                                var editor = CodeMirror.fromTextArea(document.getElementById("content"), {
-                                    lineNumbers: true,
-                                    theme: "monokai",
-                                    mode: "application/x-httpd-php",
-                                    indentUnit: 4,
-                                    smartIndent: true,
-                                    tabSize: 4,
-                                    indentWithTabs: false,
-                                    matchBrackets: true,
-                                    pollInterval: 200,
-                                    undoDepth: 999,
-                                    value: $('#content').val()
-                                });
-                            }
+                        // global
+                        populate_tree = function (id, data) {
+                            var ctl = $('#' + id);
+                            var i = 0;
+                            var path_style = 'border-left: 3px <?php echo $config['HIGHLIGHT']; ?> solid; font-weight: bold;';
+                            var file_style = '';
 
-                            if ($('#filetree').length >= 1) {
-                                populate_tree_ex ('filetree', '<?php echo $cwd; ?>');
+                            ctl.html (""); // clear it
+                            for (x in data) {
+                                i++;
+                                if (data[x].type == 'dir') { // folder
+                                    var fi = data[x].perm;
+                                    var isdir = true;
+                                    var link = '<a href="#" onclick="javascript:populate_tree_ex(\'' + id + '\', \'' + data[x].path + '/' + data[x].name + '\');">' +
+                                                   data[x].name +
+                                               '</a>';
+                                } else { // file
+                                    var fi = '<a href="?file=' + data[x].name + '&amp;mode=3">' + data[x].size + '</a>';
+                                    var isdir = false;
+                                    var link = '<a href="?cwd=' + data[x].path +
+                                                 '&amp;file=' + data[x].name +
+                                                 '&amp;mode=2" ' +
+                                                 'target="editor">' + data[x].name + '</a>';
+                                }
+                                ctl.append (
+                                    '<tr ' + (!(i % 2)? "style='background-color:rgba(255,255,255,0.1);'": '') + '>' +
+                                        '<td style="' + (isdir ? path_style : file_style) + '">' +
+                                            '<input type="checkbox" name="c' + i + '" value="1" /' + '>' +
+                                            '<input type="hidden" name="f' + i + '" ' +
+                                                   'value="' + data[x].path + '/' + data[x].name + '" /' + '>' +
+                                        '</td>' +
+                                        '<td style="width:100%;padding: 10px 3px 3px 6px;">' +
+                                            link +
+                                            '<span class="small" style="float: right">' +
+                                                fi +
+                                            '</span>' +
+                                        '</td>' +
+                                    '</tr>'
+                                );
                             }
-                        });
+                        };
+
+
+                        if ($('#filetree').length >= 1) {
+                            populate_tree_ex ('filetree', '<?php echo $cwd; ?>');
+                        }
                     });
-                </script>
-            </head>
+                });
+            </script>
+        </head>
 <?php
     }
     switch ($mode) { case FRAME:
@@ -406,95 +385,86 @@
         <noframes></noframes>
 <?php
     break; case TREE:
-        $dts = disk_total_space ($cwd);
-        $dpf = ($dts!=0)?round(disk_free_space(getcwd())/$dts*100,2):0; //calculate disk space
-        $phv = phpversion();
-
-        echo("<body class='tree'>
-                <p id='filetree_head' class='header'></p>
-                <form method='post' target='tree' action='?mode=5'>
-                <!-- ?mode=5 is needed -->
-                    <table id='filetree' cellspacing='0' cellpadding='2'></table>
-                    <p class='header'>Selected items</p>
-                    <label>
-                        <input type='radio' name='act' value='rm'>
-                        Delete
-                    </label><br />
-                    <label>
-                        <input type='radio' name='act' value='archive'>
-                        Archive
-                    </label><br /><br />
-                    <input type='hidden' name='cwd' value='$cwd' />
-                    <input type='hidden' name='mode' value='5' />
-                    <input type='submit' />
-                </form>
-                <form method='post' target='tree' action='?mode=7'
-                      enctype='multipart/form-data'>
-                <!-- ?mode=7 is needed -->
-                    <p class='header'>Upload</p>
-                    <table>
-                        <tr><td>File:</td>
-                            <td>
-                                <input type='file' name='fileobj' />
-                            </td>
-                        </tr>
-                        <tr><td>Overwrite?</td>
-                            <td>
-                                <input type='checkbox' id='overwrite' name='overwrite' value='1'/>
-                            </td>
-                        </tr>
-                        <tr><td></td>
-                            <td>
-                                <input type='hidden' name='mode' value='7' />
-                                <input type='hidden' name='cwd' value='$cwd' />
-                                <input type='submit' />
-                            </td>
-                        </tr>
-                    </table>
-                </form>
-                <form method='post' target='tree' action='?mode=4'>
-                <!-- ?mode=4 is needed -->
-                    <p class='header'>Execute</p>
-                    <table>
-                        <tr><td>Command:</td>
-                            <td>
-                                <input type='text' name='act' />
-                            </td>
-                        </tr>
-                        <tr><td>Param 1:</td>
-                            <td>
-                                <input type='text' id='param1' name='param1' value='$cwd'/>
-                            </td>
-                        </tr>
-                        <tr><td>Param 2:</td>
-                            <td>
-                                <input type='text' id='param2' name='param2' />
-                            </td>
-                        </tr>
-                        <tr><td></td>
-                            <td>
-                                <input type='hidden' name='mode' value='4' />
-                                <input type='hidden' name='cwd' value='$cwd' />
-                                <input type='submit' />
-                            </td>
-                        </tr>
-                    </table>
-                </form>
-                <p>Commands: chmod(param1,param2), cp(param1,param2), delete(param1), exec(param1),
-                    mkdir(param1), mkfile(param1), mv(param1,param2),
-                    rename(param1,param2), rmdir(param1), touch(param1)</p>
-                <hr />
-                <p> PHP File Browser by Brian Lai.
-                    <a href='https://github.com/1337/php-file-browser'>Get a copy!</a>
-                </p>
-            </body>
-        </html>");
-?><?php
+?>
+        <body class='tree'>
+            <p id='filetree_head' class='header'></p>
+            <form method='post' target='tree' action='?mode=5'>
+            <!-- ?mode=5 is needed -->
+                <table id='filetree' cellspacing='0' cellpadding='2'></table>
+                <p class='header'>Selected items</p>
+                <label>
+                    <input type='radio' name='act' value='rm'> Delete
+                </label>
+                <br />
+                <label>
+                    <input type='radio' name='act' value='archive'>
+                    Archive
+                </label><br /><br />
+                <input type='hidden' name='cwd' value='<?php echo $cwd; ?>' />
+                <input type='hidden' name='mode' value='5' />
+                <input type='submit' />
+            </form>
+            <form method='post' target='tree' action='?mode=7'
+                  enctype='multipart/form-data'>
+            <!-- ?mode=7 is needed -->
+                <p class='header'>Upload</p>
+                <table>
+                    <tr><td>File:</td>
+                        <td><input type='file' name='fileobj' /></td>
+                    </tr>
+                    <tr><td>Overwrite?</td>
+                        <td>
+                            <input type='checkbox' id='overwrite'
+                                   name='overwrite' value='1'/>
+                        </td>
+                    </tr>
+                    <tr><td></td>
+                        <td>
+                            <input type='hidden' name='mode' value='7' />
+                            <input type='hidden' name='cwd' value='<?php echo $cwd; ?>' />
+                            <input type='submit' />
+                        </td>
+                    </tr>
+                </table>
+            </form>
+            <form method='post' target='tree' action='?mode=4'>
+            <!-- ?mode=4 is needed -->
+                <p class='header'>Execute</p>
+                <table>
+                    <tr><td>Command:</td>
+                        <td>
+                            <input type='text' name='act' />
+                        </td>
+                    </tr>
+                    <tr><td>Param 1:</td>
+                        <td>
+                            <input type='text' id='param1'
+                                   name='param1' value='<?php echo $cwd; ?>'/>
+                        </td>
+                    </tr>
+                    <tr><td>Param 2:</td>
+                        <td>
+                            <input type='text' id='param2' name='param2' />
+                        </td>
+                    </tr>
+                    <tr><td></td>
+                        <td>
+                            <input type='hidden' name='mode' value='4' />
+                            <input type='hidden' name='cwd' value='<?php echo $cwd; ?>' />
+                            <input type='submit' />
+                        </td>
+                    </tr>
+                </table>
+            </form>
+            <p>Commands: chmod(param1,param2), cp(param1,param2), delete(param1), exec(param1),
+                mkdir(param1), mkfile(param1), mv(param1,param2),
+                rename(param1,param2), rmdir(param1), touch(param1)</p>
+<?php
     break; case EDITOR:
         if (!strlen ($file) || !is_file ($file)) { // if I need to open/save a file then show...
             die ("To begin, click on a file name in the file panel.");
         }
-        
+
         if (vars ('content')) { // save?
             $content = vars ('content');
 
@@ -518,27 +488,46 @@
         }
 
         $content = file_get_contents ($file);
-
-        echo("  <body style='overflow: hidden;'>
-                    <form method='post'>
-                        <textarea class='php editor'
-                                   name='content'
-                                     id='content'
-                                  style='width:100%;height:100%;'>" .
-                            htmlspecialchars ($content) . "</textarea>
-                        <input type='hidden' name='cwd' value='$cwd' />
-                        <input type='hidden' name='file' value='$file' />
-                        <input type='hidden' name='mode' value='2' />
-                        <input type='submit' name='save' id='save' 
-                               value='Save' style='display:none' />
-                    </form>
-                </body>
-            </html>");
-?><?php
+?>
+        <body style='overflow: hidden;'>
+            <form method='post'>
+                <textarea class='php editor' style='width:100%;height:100%;'
+                          name='content' id='content'><?php echo htmlspecialchars ($content); ?></textarea>
+                <input type='hidden' name='cwd' value='<?php echo $cwd; ?>' />
+                <input type='hidden' name='file' value='<?php echo $file_base; ?>' />
+                <input type='hidden' name='mode' value='2' />
+                <input type='submit' name='save' id='save'
+                       value='Save' style='display:none' />
+            </form>
+            <script type="text/javascript">
+                loader (['https://raw.github.com/1337/php-file-browser/master/scripts/codemirror/mode/xml/xml.js',
+                         'https://raw.github.com/1337/php-file-browser/master/scripts/codemirror/mode/javascript/javascript.js',
+                         'https://raw.github.com/1337/php-file-browser/master/scripts/codemirror/mode/css/css.js',
+                         'https://raw.github.com/1337/php-file-browser/master/scripts/codemirror/mode/clike/clike.js',
+                         'https://raw.github.com/1337/php-file-browser/master/scripts/codemirror/mode/php/php.js'], function () {
+                    $(document).ready(function () {
+                        if ($('#content').length >= 1) {
+                            var editor = CodeMirror.fromTextArea(document.getElementById("content"), {
+                                lineNumbers: true,
+                                theme: "monokai",
+                                mode: "application/x-httpd-php",
+                                indentUnit: 4,
+                                smartIndent: true,
+                                tabSize: 4,
+                                indentWithTabs: false,
+                                matchBrackets: true,
+                                pollInterval: 200,
+                                undoDepth: 999,
+                                value: $('#content').val()
+                            });
+                        }
+                    });
+                });
+            </script>
+<?php
     break; case DOWNLOAD: // will fail if server RAM limit < filesize
         header ("Content-type: application/force-download");
-        header ("Content-Disposition: attachment; filename=\"$f\"");
-        // header ("Content-Length: " . @filesize($cwd . '/' . $file));
+        header ("Content-Disposition: attachment; filename=\"$file_base\"");
         @readfile ($file);
         exit();
 ?><?php
@@ -580,7 +569,7 @@
 
         $cf = basename ($_SERVER['SCRIPT_FILENAME']);
         $pf = 'http://' . $_SERVER['SERVER_NAME'];
-        header ("location: $pf/$cf?cwd=$cwd&file=$filebase&mode=1");
+        header ("location: $pf/$cf?cwd=$cwd&file=$file_base&mode=1");
 ?><?php
     break; case GROUP_ACTIONS:
         $i = 0;
@@ -606,7 +595,7 @@
         $cf = basename ($_SERVER['SCRIPT_FILENAME']);
         $pf = 'http://' . $_SERVER['SERVER_NAME'];
 
-        header ("location: $pf/$cf?cwd=$cwd&file=$filebase&mode=1");
+        header ("location: $pf/$cf?cwd=$cwd&file=$file_base&mode=1");
 ?><?php
     break; case DOWNLOAD_HERE: // current folder, download only
         $files = $cwd->files (FILES_ONLY);
@@ -652,33 +641,40 @@
         }
         $cf = basename ($_SERVER['SCRIPT_FILENAME']);
         $pf = 'http://' . $_SERVER['SERVER_NAME'];
-        header ("location: $pf/$cf?cwd=$cwd&file=$filebase&mode=1");
+        header ("location: $pf/$cf?cwd=$cwd&file=$file_base&mode=1");
 ?><?php
     break; case LOGIN:
         // login window to set login cookies
         // if no cookie is set, all modes will redirect here.
-        echo ("<html>
-                    <head><style type='text/css'>
-                        input {border: 1px solid silver;padding:5px;}
-                    </style></head>
-                    <body style='background-color:#eee;font-family:sans-serif;
-                                 line-height:1.5em;font-size:0.8em;'>
-                        <div style='background-color:#fff;position:fixed;
-                                    left:50%;top:50%;width:250px;margin-left:-125px;
-                                    height:150px;margin-top:-75px;text-align:center;
-                                    padding:20px;border:1px solid silver;'>
-                            <form method='post'>
-                                <label for='username'>User name: </label><br />
-                                <input id='username' name='username' type='text' /><br />
-                                <label for='password'>Password: </label><br />
-                                <input id='password' name='password' type='password' /><br />
-                                <br />
-                                <input type='submit' value='Log in' />
-                            </form>
-                        </div>
-                    </body>
-                </html>");
-?><?php
+?>
+        <html>
+            <head>
+                <style type='text/css'>
+                    input {
+                        border: 1px solid silver;padding:5px;
+                    }
+                </style>
+            </head>
+            <body style='background-color:#eee;font-family:sans-serif;
+                         line-height:1.5em;font-size:0.8em;'>
+                <div style='background-color:#fff;position:fixed;
+                            left:50%;top:50%;width:250px;margin-left:-125px;
+                            height:150px;margin-top:-75px;text-align:center;
+                            padding:20px;border:1px solid silver;'>
+                    <form method='post'>
+                        <label for='username'>User name: </label><br />
+                        <input id='username' name='username' type='text' />
+                        <br />
+                        <label for='password'>Password: </label><br />
+                        <input id='password' name='password' type='password' />
+                        <br />
+                        <br />
+                        <input type='submit' value='Log in' />
+                    </form>
+                </div>
+            </body>
+        </html>
+<?php
     break; case AJAX_FILE_TRANSFER:
         if ($f) { // if I need to open/save a file then show...
             if (vars ('content')) { // save?
@@ -734,7 +730,14 @@
         // what do you want to debug?
     break; default:
     }
-    
-    
+
+    // For modes with html heads, print head now.
+    if (in_array ($mode, array (FRAME, TREE, EDITOR, DOWNLOAD_HERE))) {
+?>
+            </body>
+        </html>
+<?php
+    }
+
     die (); // prevent printing EOF space
 ?>
