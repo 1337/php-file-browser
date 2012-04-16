@@ -43,7 +43,6 @@
     $config = array (
         'VERSION'              => 5.1,
         'HOSTNAME'             => gethostbyaddr ($_SERVER['REMOTE_ADDR']),
-        'HIGHLIGHT'            => '#3399EE', // any HTML colour will do
         'BACKUP_BEFORE_SAVING' => true,
         'SHOW_HIDDEN_OBJECTS'  => true,      // unix only!
         'SHOW_BACKUP_OBJECTS'  => false,     // show .b??????.bak files
@@ -194,6 +193,10 @@
             $pcd = date('ymd');
             return $this->directory . $this->filename . '.b' . $pcd . '.bak';
         }
+
+        public function is_hidden () {
+            return $this->filename[0] === '.';
+        }
     }
 
 
@@ -243,27 +246,21 @@
     }
 
     // For modes with html heads, print head now.
-    if (in_array ($mode, array (FRAME, TREE, EDITOR, DOWNLOAD_HERE))) {
+    if (in_array ($mode, array (FRAME, TREE, EDITOR, DOWNLOAD_HERE, LOGIN))) {
 ?>
         <html><head>
-            <link href='http://fonts.googleapis.com/css?family=Open+Sans' rel='stylesheet' type='text/css'>
-            <link href='http://fonts.googleapis.com/css?family=Droid+Sans+Mono' rel='stylesheet' type='text/css'>
-            <link href='<?php echo FILE_ROOT; ?>scripts/codemirror/lib/codemirror.css' rel='stylesheet' type='text/css'>
-            <link href='<?php echo FILE_ROOT; ?>scripts/codemirror/theme/monokai.css' rel='stylesheet' type='text/css'>
-            <link href='<?php echo FILE_ROOT; ?>css/custom.css' rel='stylesheet' type='text/css'>
+            <link rel='stylesheet' type='text/css' href='http://fonts.googleapis.com/css?family=Open+Sans' />
+            <link rel='stylesheet' type='text/css' href='http://fonts.googleapis.com/css?family=Droid+Sans+Mono' />
+            <link rel='stylesheet' type='text/css' href='<?php echo FILE_ROOT; ?>scripts/codemirror/lib/codemirror.css' />
+            <link rel='stylesheet' type='text/css' href='<?php echo FILE_ROOT; ?>scripts/codemirror/theme/monokai.css' />
+            <link rel='stylesheet' type='text/css' href='<?php echo FILE_ROOT; ?>css/custom.css' />
+            <script type="text/javascript" src='https://raw.github.com/1337/Lazyload/master/lazyload.min.js'></script>
             <script type='text/javascript'>
-                // http://blog.fedecarg.com/2011/07/12/javascript-asynchronous-script-loading-and-lazy-loading/
-                var loader=function(a,b){b = b||function(){};for(var c=a.length,d=c,e=function(){
-                    if(!(this.readyState&&this.readyState!=="complete"&&this.readyState!=="loaded")){
-                    this.onload=this.onreadystatechange=null;--d||b()}},f=document.getElementsByTagName("head")[0],
-                    g=function(a){var b=document.createElement("script");b.async=true;
-                    b.src=a;b.onload=b.onreadystatechange=e;f.appendChild(b)};c;)g(a[--c])};
-
                 var populate_tree = null;
                 var populate_tree_ex = null;
                 var parent_path = null;
 
-                loader (['http://ajax.googleapis.com/ajax/libs/jquery/1.6.2/jquery.min.js'], function () {
+                $L (['http://ajax.googleapis.com/ajax/libs/jquery/1.6.2/jquery.min.js'], function () {
                     $(document).ready (function () {
                         var rot13 = function (s) {
                             return s.replace(/[a-zA-Z]/g,function(c){
@@ -295,12 +292,11 @@
                         populate_tree = function (id, data) {
                             var ctl = $('#' + id);
                             var i = 0;
-                            var path_style = 'border-left: 3px <?php echo $config['HIGHLIGHT']; ?> solid; font-weight: bold;';
+                            var path_style = 'border-left: 3px #3399EE solid; font-weight: bold;';
                             var file_style = '';
 
                             ctl.html (""); // clear it
                             for (x in data) {
-                                i++;
                                 if (data[x].type == 'dir') { // folder
                                     var fi = data[x].perm;
                                     var isdir = true;
@@ -315,21 +311,19 @@
                                                  '&amp;mode=2" ' +
                                                  'target="editor">' + data[x].name + '</a>';
                                 }
-                                ctl.append (
-                                    '<tr ' + (!(i % 2)? "style='background-color:rgba(255,255,255,0.1);'": '') + '>' +
-                                        '<td style="' + (isdir ? path_style : file_style) + '">' +
-                                            '<input type="checkbox" name="c' + i + '" value="1" /' + '>' +
-                                            '<input type="hidden" name="f' + i + '" ' +
-                                                   'value="' + data[x].path + '/' + data[x].name + '" /' + '>' +
-                                        '</td>' +
-                                        '<td style="width:100%;padding: 10px 3px 3px 6px;">' +
-                                            link +
-                                            '<span class="small" style="float: right">' +
-                                                fi +
-                                            '</span>' +
-                                        '</td>' +
-                                    '</tr>'
-                                );
+                                $('<tr />').append(
+                                    '<td style="' + (isdir ? path_style : file_style) + '">' +
+                                        '<input type="checkbox" name="c' + i + '" value="1" /' + '>' +
+                                        '<input type="hidden" name="f' + i + '" ' +
+                                               'value="' + data[x].path + '/' + data[x].name +
+                                    '" /></td>' +
+                                    '<td>' +
+                                        link +
+                                        '<span class="small rfloat">' +
+                                            fi +
+                                        '</span>' +
+                                    '</td>')
+                                .appendTo(ctl);
                             }
                         };
 
@@ -430,7 +424,8 @@
                 rename(param1,param2), rmdir(param1), touch(param1)</p>
 <?php
     break; case EDITOR:
-        if (!strlen ($file) || !is_file ($file)) { // if I need to open/save a file then show...
+        // if I need to open/save a file then show...
+        if (!strlen ($file) || !is_file ($file)) {
             die ("To begin, click on a file name in the file panel.");
         }
 
@@ -448,8 +443,7 @@
                 );
             }
 
-            $pr = file_put_contents ($file, $content);
-            if ($pr === false) {
+            if (file_put_contents ($file, $content) === false) {
                 echo("<p><b>$file</b> was <span style='color:red'>NOT</b> saved.</p>");
             } else {
                 echo("<p><b>$file</b> is supposedly saved.</p>");
@@ -470,11 +464,11 @@
             </form>
             <script type="text/javascript" src="<?php echo FILE_ROOT; ?>scripts/codemirror/lib/codemirror.js"></script>
             <script type="text/javascript">
-                loader (['<?php echo FILE_ROOT; ?>scripts/codemirror/mode/xml/xml.js',
-                         '<?php echo FILE_ROOT; ?>scripts/codemirror/mode/javascript/javascript.js',
-                         '<?php echo FILE_ROOT; ?>scripts/codemirror/mode/css/css.js',
-                         '<?php echo FILE_ROOT; ?>scripts/codemirror/mode/clike/clike.js',
-                         '<?php echo FILE_ROOT; ?>scripts/codemirror/mode/php/php.js'], function () {
+                $L (['<?php echo FILE_ROOT; ?>scripts/codemirror/mode/xml/xml.js',
+                     '<?php echo FILE_ROOT; ?>scripts/codemirror/mode/javascript/javascript.js',
+                     '<?php echo FILE_ROOT; ?>scripts/codemirror/mode/css/css.js',
+                     '<?php echo FILE_ROOT; ?>scripts/codemirror/mode/clike/clike.js',
+                     '<?php echo FILE_ROOT; ?>scripts/codemirror/mode/php/php.js'], function () {
                     $(document).ready(function () {
                         if ($('#content').length >= 1) {
                             var editor = CodeMirror.fromTextArea(document.getElementById("content"), {
@@ -551,31 +545,25 @@
 ?><?php
     break; case DOWNLOAD_HERE: // current folder, download only
         $files = $cwd->files (FILES_ONLY);
-        echo("<body>
+?>
+            <body>
                 <p class='header'>
-                    <b>" . basename ((string) $cwd) . "</b>
+                    <b><?php echo basename ((string) $cwd); ?></b>
                 </p>
-                <table cellspacing='0'
-                       cellpadding='2'
-                       style='display:block;margin:auto;width:500px;'>");
-
-        $i = 0;
-        foreach ($files as $idx => $pn) {
-            if ($pn[0] !== '.') { // don't show hidden files
-                $i++;
-
-                printf ("<tr %s>
-                            <td style='width:100%%;'>
-                                <a href='?file=$pn&amp;mode=3' target='_blank'>$pn</a>
-                            </td>
-                         </tr>",
-                        (($i % 2 == 0)? "style='background-color:#eee;'": ''));
-            }
-        }
-        echo("      </table>
-                </body>
-            </html>");
-?><?php
+                <table class='filelist' cellspacing='0' cellpadding='2'>");
+                <?php foreach ($files as $idx => $file) {
+                    if (!$pn->is_hidden ()) { // don't show hidden files
+                        echo "
+                    <tr><td style='width:100%%;'>
+                        <a href='?file=$file&amp;mode=3' target='_blank'>$file</a>
+                    </td></tr>
+                        ";
+                    }
+                } ?>
+                </table>
+            </body>
+        </html>
+<?php
     break; case UPLOAD_HERE:
         // this provides no feedback, and overwrites any files.
         if (isset ($_FILES['fileobj'])) {
@@ -624,22 +612,21 @@
                         <input type='submit' value='Log in' />
                     </form>
                 </div>
-            </body>
-        </html>
 <?php
     break; case AJAX_FILE_TRANSFER:
-        if ($f) { // if I need to open/save a file then show...
+        // if I need to open/save a file then show...
+        if (!strlen ($file) || !is_file ($file)) {
             if (vars ('content')) { // save?
                 $content = vars ('content');
 
-                $pr = false;
                 //pretend this is a backup
                 if (BACKUP_BEFORE_SAVING) {
-                    $pcd = date('ymd');
-                    if (!file_exists ("$file.b$pcd.bak")) { // copy only if not exists (saves first file of date)
-                        $pr = @copy ($file,"$file.b$pcd.bak");
+                    if (!file_exists ($file->backup_file ())) {
+                        // copy only if not exists (saves first file of date)
+                        copy ($file, $file->backup_file ());
                     }
-                    @chmod ("$file.b$pcd.bak", fileperms (__FILE__)); // inherit file permissions
+                    // inherit file permissions
+                    chmod ($file->backup_file (), fileperms (__FILE__));
                 }
 
                 if (file_get_contents ($file, $content) === false) {
@@ -683,7 +670,7 @@
     break; default:
     }
 
-    if (in_array ($mode, array (FRAME, TREE, EDITOR, DOWNLOAD_HERE))) {
+    if (in_array ($mode, array (FRAME, TREE, EDITOR, DOWNLOAD_HERE, LOGIN))) {
         // For modes with html heads, print tail now.
 ?>
             </body>

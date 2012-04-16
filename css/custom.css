@@ -18,10 +18,23 @@ a {
     margin:0 0 5px 0;
     padding:5px;
     font-size: 14pt;
-    color: <?php echo (HIGHLIGHT); ?>;
+    color: #3399EE;
     vertical-align:top; }
+.filelist {
+    display:block;
+    margin:auto;
+    width:500px; }
+    .filelist tr:even {
+        background-color:#eee; }
+    .filelist tr td:first-child + td {
+        width:100%;
+        padding: 10px 3px 3px 6px; }
 .small {
     font-size: 10px; }
+.lfloat {
+    float: left; }
+.rfloat {
+    float: right; }
 html .CodeMirror, html .CodeMirror * {
     font-family: 'Droid Sans Mono', monaco, consolas, monospace;
     font-size: 10pt;
