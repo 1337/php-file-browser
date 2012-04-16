@@ -21,13 +21,13 @@ a {
     font-size: 14pt;
     color: #3399EE;
     vertical-align:top; }
-.filelist {
+.filetree {
     display:block;
     margin:auto;
     width:500px; }
-    .filelist tr:even {
+    .filetree tr:hover, .filetree tr:even {
         background-color:#eee; }
-    .filelist tr td:first-child + td {
+    .filetree tr td:first-child + td {
         width:100%;
         padding: 10px 3px 3px 6px; }
 .small {

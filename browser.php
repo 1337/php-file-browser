@@ -432,7 +432,8 @@
                                     }
                                 });
                             } else { // file
-                                var fi = '<a href="?file=' + data[i].name + 
+                                var fi = '<a href="?cwd=' + data[i].path + 
+                                                  '&file=' + data[i].name + 
                                                   '&mode=3">' + data[i].size + 
                                          '</a>';
                                 var isdir = false;
@@ -510,7 +511,7 @@
     break; case DOWNLOAD: // will fail if server RAM limit < filesize
         header ("Content-type: application/force-download");
         header ("Content-Disposition: attachment; filename=\"$file_base\"");
-        @readfile ($file);
+        readfile ($file);
         exit();
 ?><?php
     break; case COMMAND_LINE:
@@ -567,7 +568,7 @@
                 <p class='header'>
                     <b><?php echo basename ((string) $cwd); ?></b>
                 </p>
-                <table class='filelist' cellspacing='0' cellpadding='2'>");
+                <table class='filetree' cellspacing='0' cellpadding='2'>");
                 <?php foreach ($files as $idx => $file) {
                     if (!$pn->is_hidden ()) { // don't show hidden files
                         echo "
