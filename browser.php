@@ -573,7 +573,9 @@
                     if (!$pn->is_hidden ()) { // don't show hidden files
                         echo "
                     <tr><td style='width:100%%;'>
-                        <a href='?file=$file&amp;mode=3' target='_blank'>$file</a>
+                        <a href='?file=$file&amp;mode=",
+                        DOWNLOAD,
+                        "' target='_blank'>$file</a>
                     </td></tr>
                         ";
                     }
