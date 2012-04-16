@@ -1,0 +1,32 @@
+.tree {
+    background-color: #454d50; }
+    .tree * {
+        color: #eee; }
+html, html * {
+    font-family:'Open Sans', 'Segoe UI', Arial, sans-serif;
+    font-size: 12px; }
+body {
+    margin:0;
+    padding:0; }
+a {
+    text-decoration:none; }
+    a:hover {
+        text-decoration:underline; }
+    a img {
+        border:0; }
+.header {
+    margin:0 0 5px 0;
+    padding:5px;
+    font-size: 14pt;
+    color: <?php echo (HIGHLIGHT); ?>;
+    vertical-align:top; }
+.small {
+    font-size: 10px; }
+html .CodeMirror, html .CodeMirror * {
+    font-family: 'Droid Sans Mono', monaco, consolas, monospace;
+    font-size: 10pt;
+}
+.CodeMirror {
+    width: 100%;
+    height: 100%;
+}

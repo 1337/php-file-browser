@@ -22,6 +22,7 @@
         10  ajax JSON filelist      tree
         99    debug
     */
+    define ('FILE_ROOT'         , 'https://raw.github.com/1337/php-file-browser/master/');
     define ('FRAME'             , 0);
     define ('TREE'              , 1);
     define ('EDITOR'            , 2);
@@ -247,140 +248,20 @@
         <html><head>
             <link href='http://fonts.googleapis.com/css?family=Open+Sans' rel='stylesheet' type='text/css'>
             <link href='http://fonts.googleapis.com/css?family=Droid+Sans+Mono' rel='stylesheet' type='text/css'>
-            <link href='https://raw.github.com/1337/php-file-browser/master/scripts/codemirror/lib/codemirror.css' rel='stylesheet' type='text/css'>
-            <link href='https://raw.github.com/1337/php-file-browser/master/scripts/codemirror/theme/monokai.css' rel='stylesheet' type='text/css'>
-            <script src='https://raw.github.com/1337/php-file-browser/master/scripts/codemirror/lib/codemirror.js'></script>
-            <style type="text/css">
-                .tree {
-                    background-color: #454d50; }
-                    .tree * {
-                        color: #eee; }
-                html, html * {
-                    font-family:'Open Sans', 'Segoe UI', Arial, sans-serif;
-                    font-size: 12px; }
-                body {
-                    margin:0;
-                    padding:0; }
-                a {
-                    text-decoration:none; }
-                    a:hover {
-                        text-decoration:underline; }
-                    a img {
-                        border:0; }
-                .header {
-                    margin:0 0 5px 0;
-                    padding:5px;
-                    font-size: 14pt;
-                    color: <?php echo (HIGHLIGHT); ?>;
-                    vertical-align:top; }
-                .small {
-                    font-size: 10px; }
-                html .CodeMirror, html .CodeMirror * {
-                    font-family: 'Droid Sans Mono', monaco, consolas, monospace;
-                    font-size: 10pt;
-                }
-                .CodeMirror {
-                    width: 100%;
-                    height: 100%;
-                }
-            </style>
-            <script type='text/javascript'>
-                // http://blog.fedecarg.com/2011/07/12/javascript-asynchronous-script-loading-and-lazy-loading/
-                var loader=function(a,b){b = b||function(){};for(var c=a.length,d=c,e=function(){
-                    if(!(this.readyState&&this.readyState!=="complete"&&this.readyState!=="loaded")){
-                    this.onload=this.onreadystatechange=null;--d||b()}},f=document.getElementsByTagName("head")[0],
-                    g=function(a){var b=document.createElement("script");b.async=true;
-                    b.src=a;b.onload=b.onreadystatechange=e;f.appendChild(b)};c;)g(a[--c])};
-
-                var populate_tree = null;
-                var populate_tree_ex = null;
-                var parent_path = null;
-
-                loader (['http://ajax.googleapis.com/ajax/libs/jquery/1.6.2/jquery.min.js'], function () {
-                    $(document).ready (function () {
-                        var rot13 = function (s) {
-                            return s.replace(/[a-zA-Z]/g,function(c){
-                            return String.fromCharCode((c<="Z"?90:122)>=(c=c.charCodeAt(0)+13)?c:c-26);})
-                        };
-
-                        // global
-                        parent_path = function (path) {
-                            return path.substr(0, path.lastIndexOf('/'));
-                        }
-
-                        // global
-                        populate_tree_ex = function (id, path) {
-                            $.getJSON ('<?php echo basename (__FILE__); ?>', {
-                                    'mode': '<?php echo JSON_TREE; ?>',
-                                    'cwd': path,
-                                    'param1': <?php echo DIRS_AND_FILES; ?>
-                                }, function (data) {
-                                    populate_tree (id, data);
-                                }
-                            );
-                            $('#filetree_head').html ('<a href="#" onclick="javascript:populate_tree_ex(\'' + id + '\', \'' + parent_path (path) + '\');">' +
-                                "<img src='http://img707.imageshack.us/img707/1033/iconfolderup.gif' /" + ">" +
-                                "</a><b>" + path + "</b>"
-                            );
-                        };
-
-                        // global
-                        populate_tree = function (id, data) {
-                            var ctl = $('#' + id);
-                            var i = 0;
-                            var path_style = 'border-left: 3px <?php echo $config['HIGHLIGHT']; ?> solid; font-weight: bold;';
-                            var file_style = '';
-
-                            ctl.html (""); // clear it
-                            for (x in data) {
-                                i++;
-                                if (data[x].type == 'dir') { // folder
-                                    var fi = data[x].perm;
-                                    var isdir = true;
-                                    var link = '<a href="#" onclick="javascript:populate_tree_ex(\'' + id + '\', \'' + data[x].path + '/' + data[x].name + '\');">' +
-                                                   data[x].name +
-                                               '</a>';
-                                } else { // file
-                                    var fi = '<a href="?file=' + data[x].name + '&amp;mode=3">' + data[x].size + '</a>';
-                                    var isdir = false;
-                                    var link = '<a href="?cwd=' + data[x].path +
-                                                 '&amp;file=' + data[x].name +
-                                                 '&amp;mode=2" ' +
-                                                 'target="editor">' + data[x].name + '</a>';
-                                }
-                                ctl.append (
-                                    '<tr ' + (!(i % 2)? "style='background-color:rgba(255,255,255,0.1);'": '') + '>' +
-                                        '<td style="' + (isdir ? path_style : file_style) + '">' +
-                                            '<input type="checkbox" name="c' + i + '" value="1" /' + '>' +
-                                            '<input type="hidden" name="f' + i + '" ' +
-                                                   'value="' + data[x].path + '/' + data[x].name + '" /' + '>' +
-                                        '</td>' +
-                                        '<td style="width:100%;padding: 10px 3px 3px 6px;">' +
-                                            link +
-                                            '<span class="small" style="float: right">' +
-                                                fi +
-                                            '</span>' +
-                                        '</td>' +
-                                    '</tr>'
-                                );
-                            }
-                        };
-
-
-                        if ($('#filetree').length >= 1) {
-                            populate_tree_ex ('filetree', '<?php echo $cwd; ?>');
-                        }
-                    });
-                });
-            </script>
+            <link href='<?php echo FILE_ROOT; ?>scripts/codemirror/lib/codemirror.css' rel='stylesheet' type='text/css'>
+            <link href='<?php echo FILE_ROOT; ?>scripts/codemirror/theme/monokai.css' rel='stylesheet' type='text/css'>
+            <link href='<?php echo FILE_ROOT; ?>css/custom.css' rel='stylesheet' type='text/css'>
+            <script src='<?php echo FILE_ROOT; ?>js/core.js' type='text/javascript'></script>
         </head>
 <?php
     }
+    
+    // split page code ========================================================
     switch ($mode) { case FRAME:
 ?>
         <frameset cols="300px,*">
-            <frame name="tree" <?php echo 'src="?mode=1"'; ?> />
-            <frame name="editor" <?php echo 'src="?mode=2"'; ?> />
+            <frame name="tree" src="?mode=1" />
+            <frame name="editor" src="?mode=2" />
         </frameset>
         <noframes></noframes>
 <?php
@@ -500,11 +381,12 @@
                        value='Save' style='display:none' />
             </form>
             <script type="text/javascript">
-                loader (['https://raw.github.com/1337/php-file-browser/master/scripts/codemirror/mode/xml/xml.js',
-                         'https://raw.github.com/1337/php-file-browser/master/scripts/codemirror/mode/javascript/javascript.js',
-                         'https://raw.github.com/1337/php-file-browser/master/scripts/codemirror/mode/css/css.js',
-                         'https://raw.github.com/1337/php-file-browser/master/scripts/codemirror/mode/clike/clike.js',
-                         'https://raw.github.com/1337/php-file-browser/master/scripts/codemirror/mode/php/php.js'], function () {
+                loader (['<?php echo FILE_ROOT; ?>scripts/codemirror/lib/codemirror.js',
+                         '<?php echo FILE_ROOT; ?>scripts/codemirror/mode/xml/xml.js',
+                         '<?php echo FILE_ROOT; ?>scripts/codemirror/mode/javascript/javascript.js',
+                         '<?php echo FILE_ROOT; ?>scripts/codemirror/mode/css/css.js',
+                         '<?php echo FILE_ROOT; ?>scripts/codemirror/mode/clike/clike.js',
+                         '<?php echo FILE_ROOT; ?>scripts/codemirror/mode/php/php.js'], function () {
                     $(document).ready(function () {
                         if ($('#content').length >= 1) {
                             var editor = CodeMirror.fromTextArea(document.getElementById("content"), {
@@ -538,33 +420,15 @@
         $param2 = htmlspecialchars (urldecode ($param2));
 
         switch (strtolower ($act)) {
-            case 'mv'; case 'rename':
-                rename ($param1, $param2);
-                break;
-            case 'chmod':
-                chmod ($param1, $param2);
-                break;
-            case 'cp':
-                copy ($param1, $param2);
-                break;
-            case 'exec':
-                exec ($param1);
-                break;
-            case 'mkdir':
-                mkdir ($param1);
-                break;
-            case 'mkfile'; case 'touch':
-                touch ($param1);
-                break;
-            case 'delete'; case 'rm':
-                unlink ($param1);
-                break;
-            case 'rmdir':
-                rmdir ($param1);
-                break;
-            default:
-                die("No such command: $act");
-                exit();
+            case 'mv'; case 'rename':    rename ($param1, $param2); break;
+            case 'chmod':                chmod ($param1, $param2);  break;
+            case 'cp':                   copy ($param1, $param2);   break;
+            case 'exec':                 exec ($param1);            break;
+            case 'mkdir':                mkdir ($param1);           break;
+            case 'mkfile'; case 'touch': touch ($param1);           break;
+            case 'delete'; case 'rm':    unlink ($param1);          break;
+            case 'rmdir':                rmdir ($param1);           break;
+            default:                     die("No such command: $act");
         }
 
         $cf = basename ($_SERVER['SCRIPT_FILENAME']);
@@ -731,8 +595,8 @@
     break; default:
     }
 
-    // For modes with html heads, print head now.
     if (in_array ($mode, array (FRAME, TREE, EDITOR, DOWNLOAD_HERE))) {
+        // For modes with html heads, print tail now.
 ?>
             </body>
         </html>
