@@ -35,6 +35,10 @@ a {
     float: left; }
 .rfloat {
     float: right; }
+.file_style { }
+.path_style {
+    border-left: 3px #3399EE solid;
+    font-weight: bold; }
 html .CodeMirror, html .CodeMirror * {
     font-family: 'Droid Sans Mono', monaco, consolas, monospace;
     font-size: 10pt;
