@@ -21,15 +21,6 @@ a {
     font-size: 14pt;
     color: #3399EE;
     vertical-align:top; }
-.filetree {
-    display:block;
-    margin:auto;
-    width:500px; }
-    .filetree tr:hover, .filetree tr:even {
-        background-color:#eee; }
-    .filetree tr td:first-child + td {
-        width:100%;
-        padding: 10px 3px 3px 6px; }
 .small {
     font-size: 10px; }
 .lfloat {
@@ -52,4 +43,11 @@ html .CodeMirror, html .CodeMirror * {
     height: 100% !important;
 }
 #filetree {
+    display:block;
+    margin:auto;
     width: 100%; }
+    #filetree tr:hover, #filetree tr:even {
+        background-color:#eee; }
+    #filetree tr td:first-child + td {
+        width:100%;
+        padding: 10px 3px 3px 6px; }
