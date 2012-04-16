@@ -256,10 +256,13 @@
         );
 ?>
         <html><head>
-            <?php foreach ($css_files as $css) { echo "<link rel='stylesheet' type='text/css' href='$css' />"; } ?>
-            <script type="text/javascript" src='https://raw.github.com/1337/Lazyload/master/lazyload.min.js'></script>
-            <script type="text/javascript" src='http://ajax.googleapis.com/ajax/libs/jquery/1.6.2/jquery.min.js'></script>
-            
+            <?php foreach ($css_files as $css) {
+                echo "<link rel='stylesheet' type='text/css' href='$css' />";
+            } ?>
+            <script type="text/javascript"
+                    src='https://raw.github.com/1337/Lazyload/master/lazyload.min.js'></script>
+            <script type="text/javascript"
+                    src='http://ajax.googleapis.com/ajax/libs/jquery/1.6.2/jquery.min.js'></script>
             <script type='text/javascript'>
                 var populate_tree = null;
                 var populate_tree_ex = null;
@@ -295,11 +298,14 @@
                 </label>
                 <br />
                 <br />
-                <input type='hidden' name='cwd' value='<?php echo $cwd; ?>' />
-                <input type='hidden' name='mode' value='<?php echo GROUP_ACTIONS; ?>' />
+                <input type='hidden' name='cwd'
+                       value='<?php echo $cwd; ?>' />
+                <input type='hidden' name='mode'
+                       value='<?php echo GROUP_ACTIONS; ?>' />
                 <input type='submit' />
             </form>
-            <form method='post' target='tree' action='?mode=<?php echo UPLOAD_HERE; ?>'
+            <form method='post' target='tree'
+                  action='?mode=<?php echo UPLOAD_HERE; ?>'
                   enctype='multipart/form-data'>
             <!-- ?mode=7 is needed -->
                 <p class='header'>Upload</p>
@@ -315,8 +321,10 @@
                     </tr>
                     <tr><td></td>
                         <td>
-                            <input type='hidden' name='mode' value='7' />
-                            <input type='hidden' name='cwd' value='<?php echo $cwd; ?>' />
+                            <input type='hidden' name='mode'
+                                   value='<?php echo UPLOAD_HERE; ?>' />
+                            <input type='hidden' name='cwd' 
+                                   value='<?php echo $cwd; ?>' />
                             <input type='submit' />
                         </td>
                     </tr>
@@ -344,8 +352,10 @@
                     </tr>
                     <tr><td></td>
                         <td>
-                            <input type='hidden' name='mode' value='<?php echo COMMAND_LINE; ?>' />
-                            <input type='hidden' name='cwd' value='<?php echo $cwd; ?>' />
+                            <input type='hidden' name='mode' 
+                                   value='<?php echo COMMAND_LINE; ?>' />
+                            <input type='hidden' name='cwd'
+                                   value='<?php echo $cwd; ?>' />
                             <input type='submit' />
                         </td>
                     </tr>
@@ -355,12 +365,17 @@
                 mkdir(param1), mv(param1,param2),
                 rmdir(param1), touch(param1)</p>
             <script type="text/javascript">
+                "use strict";
                 $(document).ready (function () {
                     var rot13 = function (s) {
                         return s.replace(
                             /[a-zA-Z]/g,
                             function (c) {
-                                return String.fromCharCode((c<="Z"?90:122)>=(c=c.charCodeAt(0)+13)?c:c-26);
+                                return String.fromCharCode(
+                                    (c<="Z"?90:122)>=(c=c.charCodeAt(0)+13)?
+                                    c:
+                                    c-26
+                                );
                             }
                         );
                     };
@@ -380,46 +395,61 @@
                                 populate_tree (id, data);
                             }
                         );
-                        $('#filetree_head').html ('<a href="#" onclick="javascript:populate_tree_ex(\'' + id + '\', \'' + parent_path (path) + '\');">' +
-                            "<img src='http://img707.imageshack.us/img707/1033/iconfolderup.gif' /" + ">" +
-                            "</a><b>" + path + "</b>"
-                        );
+                        var a = $('<a />', {
+                            'href': '#',
+                            'click': function () {
+                                populate_tree_ex(id, parent_path (path));
+                            },
+                            'html': "<img src='http://i.imgur.com/gMwUw.gif' />"
+                        });
+                        $('#filetree_head')
+                            .html('')
+                            .append(a)
+                            .append("<b>" + path + "</b>");
                     };
 
                     // global scope
                     populate_tree = function (id, data) {
                         var ctl = $('#' + id);
-                        var i = 0;
 
-                        ctl.html (""); // clear it
-                        for (x in data) {
-                            if (data[x].type == 'dir') { // folder
-                                var fi = data[x].perm;
+                        ctl.html (''); // clear it
+                        for (var i = 0; i < data.length; i++) {
+                            if (data[i].type == 'dir') { // folder
+                                var fi = data[i].perm;
                                 var isdir = true;
+                                var path = data[i].path;
                                 var link = $('<a />', {
-                                    'href': '#',
                                     'click': function () {
-                                        populate_tree_ex(id, data[x].path + '/' + data[x].name);
+                                        populate_tree_ex (
+                                            id, 
+                                            $(this).data('path') + $(this).data('name')
+                                        );
                                     },
-                                    'text': data[x].name
+                                    'text': data[i].name,
+                                    'data': {
+                                        'path': data[i].path,
+                                        'name': data[i].name
+                                    }
                                 });
                             } else { // file
-                                var fi = '<a href="?file=' + data[x].name + '&amp;mode=3">' + data[x].size + '</a>';
+                                var fi = '<a href="?file=' + data[i].name + 
+                                                  '&mode=3">' + data[i].size + 
+                                         '</a>';
                                 var isdir = false;
                                 var link = $('<a />', {
                                     'target': 'editor',
-                                    'href': '?cwd=' + data[x].path + 
-                                            '&file=' + data[x].name +
+                                    'href': '?cwd=' + data[i].path + 
+                                            '&file=' + data[i].name +
                                             '&mode=<?php echo EDITOR; ?>',
-                                    'text': data[x].name
+                                    'text': data[i].name
                                 });
                             }
                             var td1 = $('<td class="' + (isdir ? 'path_style' : 'file_style') + '">' +
                                             '<input type="checkbox" name="c' + i + '" value="1" />' +
                                             '<input type="hidden" name="f' + i + '" ' +
-                                                   'value="' + data[x].path + '/' + data[x].name +
-                                        '" /></td>');
+                                                   'value="' + data[i].path + data[i].name + '" /></td>');
                             var td2 = $('<td />');
+
                             td2.append(link)
                                .append('<span class="small rfloat">' +
                                            fi +

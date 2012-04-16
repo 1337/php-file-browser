@@ -9,7 +9,8 @@ body {
     margin:0;
     padding:0; }
 a {
-    text-decoration:none; }
+    text-decoration:none;
+    cursor: pointer; }
     a:hover {
         text-decoration:underline; }
     a img {
@@ -50,3 +51,5 @@ html .CodeMirror, html .CodeMirror * {
 .CodeMirror-scroll {
     height: 100% !important;
 }
+#filetree {
+    width: 100%; }
