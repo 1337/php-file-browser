@@ -698,5 +698,4 @@
 <?php
     }
 
-    die (); // prevent printing EOF space
-?>
+    // prevent printing EOF space
