@@ -271,7 +271,7 @@
         </head>
 <?php
     }
-    
+
     // split page code ========================================================
     switch ($mode) { case FRAME:
 ?>
@@ -323,7 +323,7 @@
                         <td>
                             <input type='hidden' name='mode'
                                    value='<?php echo UPLOAD_HERE; ?>' />
-                            <input type='hidden' name='cwd' 
+                            <input type='hidden' name='cwd'
                                    value='<?php echo $cwd; ?>' />
                             <input type='submit' />
                         </td>
@@ -352,7 +352,7 @@
                     </tr>
                     <tr><td></td>
                         <td>
-                            <input type='hidden' name='mode' 
+                            <input type='hidden' name='mode'
                                    value='<?php echo COMMAND_LINE; ?>' />
                             <input type='hidden' name='cwd'
                                    value='<?php echo $cwd; ?>' />
@@ -421,7 +421,7 @@
                                 var link = $('<a />', {
                                     'click': function () {
                                         populate_tree_ex (
-                                            id, 
+                                            id,
                                             $(this).data('path') + $(this).data('name')
                                         );
                                     },
@@ -432,14 +432,14 @@
                                     }
                                 });
                             } else { // file
-                                var fi = '<a href="?cwd=' + data[i].path + 
-                                                  '&file=' + data[i].name + 
-                                                  '&mode=3">' + data[i].size + 
+                                var fi = '<a href="?cwd=' + data[i].path +
+                                                  '&file=' + data[i].name +
+                                                  '&mode=3">' + data[i].size +
                                          '</a>';
                                 var isdir = false;
                                 var link = $('<a />', {
                                     'target': 'editor',
-                                    'href': '?cwd=' + data[i].path + 
+                                    'href': '?cwd=' + data[i].path +
                                             '&file=' + data[i].name +
                                             '&mode=<?php echo EDITOR; ?>',
                                     'text': data[i].name
