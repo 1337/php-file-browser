@@ -51,7 +51,7 @@
             } else {
                 $mode = LOGIN; // authentication failed; redirect to login page
             }
-        } except (Exception $e) {
+        } catch (Exception $e) {
             $mode = LOGIN;
         }
     }

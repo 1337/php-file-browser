@@ -29,7 +29,7 @@
             return $name[0] !== '.';
         }
 
-        public function files($what = DIRS_AND_FILES) {
+        public function files($what=DIRS_AND_FILES) {
             /*  returns all files from $directory.
 
                 what 0 = dirs only
@@ -63,8 +63,8 @@
                     );
                 }
                 if ($config['SHOW_HIDDEN_OBJECTS'] !== true) {
-                    $files = array_filter($files, array (
-                                                        $this, '_filter_hidden_objects'));
+                    $files = array_filter(
+                        $files, array ($this, '_filter_hidden_objects'));
                 }
             }
             foreach ($files as &$file) {
@@ -140,7 +140,7 @@
         }
     }
 
-    function vars($index = false, $default = null) {
+    function vars($index=false, $default=null) {
         // gathers everything from the request.
         // see cached version of this function: github.com/1337/pop
         @session_start();
@@ -160,7 +160,7 @@
         return $default;
     }
 
-    function check_password($username, $password, $hash) {
+    function check_password($username, $password, $hash='') {
         $salt = '';  // the password was not salted
 
         if (strlen($username) > 0 || strlen($password) > 0) {
