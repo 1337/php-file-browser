@@ -43,13 +43,16 @@
 
     if ($config['CHECK_PASSWORD'] === true && strlen($username) > 0) {
         // login request
-        if (array_key_exists($username, $config['ALLOWED_USERS']) &&
-            (sha1($password) === $config['ALLOWED_USERS'][$username])
-        ) {
-            setcookie("username", $username, time() + 36000);
-            setcookie("password", $password, time() + 36000);
-        } else {
-            $mode = LOGIN; // authentication failed; redirect to login page
+        try {
+            $hash = $config['ALLOWED_USERS'][$username];
+            if (check_password($username, $password, $hash)) {
+                setcookie("username", $username, time() + 36000);
+                setcookie("password", $password, time() + 36000);
+            } else {
+                $mode = LOGIN; // authentication failed; redirect to login page
+            }
+        } except (Exception $e) {
+            $mode = LOGIN;
         }
     }
 
