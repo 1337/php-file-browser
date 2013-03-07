@@ -159,3 +159,29 @@
         // everyone else would have returned by now
         return $default;
     }
+
+    function check_password($username, $password, $hash) {
+        $salt = '';  // the password was not salted
+
+        if (strlen($username) > 0 || strlen($password) > 0) {
+            // improper request
+            return false;
+        }
+
+        if (!array_key_exists($username, $SETTINGS['ALLOWED_USERS'])) {
+            // user not registered
+            return false;
+        }
+
+        if (strpos($hash, ';') !== false) {
+            // that is, a separator was found in the hash
+            $components = explode(';', $hash, 2);
+
+            // the password was generated with $salt APpended
+            $hash = $components[0];
+            $salt = $components[1];
+        }
+
+        // do the actual check
+        return strtolower(sha1($password . $salt)) === strtolower($hash);
+    }
