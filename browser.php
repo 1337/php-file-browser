@@ -53,7 +53,15 @@
         }
     }
 
-    // process the request.
-    include_once(PROJECT_ROOT . '/templates/' . $mode . '.php');
+    // process the request. this is actually the controller.
+    $controller_filename = PROJECT_ROOT . '/controllers/' . $mode . '.php';
+    if (file_exists($controller_filename)) {
+        include_once($controller_filename);
+    }
+
+    $template_filename = PROJECT_ROOT . '/templates/' . $mode . '.php';
+    if (file_exists($template_filename)) {
+        include_once($template_filename);
+    }
 
     die();  // just in case
