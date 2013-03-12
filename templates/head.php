@@ -20,8 +20,6 @@
     <script src='https://raw.github.com/1337/Lazyload/master/lazyload.min.js'></script>
     <script src='http://ajax.googleapis.com/ajax/libs/jquery/1.6.2/jquery.min.js'></script>
     <script>
-        var populate_tree = null;
-        var populate_tree_ex = null;
-        var parent_path = null;
+        var populate_tree = populate_tree_ex = parent_path = null;
     </script>
 </head>

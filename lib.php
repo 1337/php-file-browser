@@ -136,6 +136,7 @@
         }
 
         public function is_hidden() {
+            // implies this function works only on *nix
             return $this->filename[0] === '.';
         }
     }

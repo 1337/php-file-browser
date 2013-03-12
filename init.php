@@ -22,9 +22,9 @@
 
     // populate useful variables
     $act = vars('act');
-    $cwd = new DirTools (vars('cwd', getcwd()));
+    $cwd = new DirTools(vars('cwd', getcwd()));
     $mode = vars('mode', 0); // 0 = frame page
-    $file = new FileTools ($cwd, vars('file'));
+    $file = new FileTools($cwd, vars('file'));
     $file_base = basename($file);
     $param1 = vars('param1'); // params for $act
     $param2 = vars('param2');
