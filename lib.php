@@ -29,7 +29,7 @@
             return $name[0] !== '.';
         }
 
-        public function files($what=DIRS_AND_FILES) {
+        public function files($what=2 /* DIRS_AND_FILES */) {
             /*  returns all files from $directory.
 
                 what 0 = dirs only
@@ -40,16 +40,16 @@
             $file_objects = array ();
 
             switch ($what) {
-                case DIRS_ONLY:
+                case 0 /* DIRS_ONLY */:
                     $files = glob($this->directory . '/*', GLOB_ONLYDIR);
                     break;
-                case FILES_ONLY:
+                case 1 /* FILES_ONLY */:
                     $files = array_diff(
                         glob($this->directory . '/*'),
                         glob($this->directory . '/*', GLOB_ONLYDIR)
                     );
                     break;
-                case DIRS_AND_FILES:
+                case 2 /* DIRS_AND_FILES */:
                 default:
                     $files = glob($this->directory . '/*');
                     break;
@@ -169,7 +169,7 @@
             return false;
         }
 
-        if (!array_key_exists($username, $SETTINGS['ALLOWED_USERS'])) {
+        if (!array_key_exists($username, $CONFIG['ALLOWED_USERS'])) {
             // user not registered
             return false;
         }

@@ -41,7 +41,7 @@
     // public subs ============================================================
     chdir($cwd); // because
 
-    if ($config['CHECK_PASSWORD'] === true && strlen($username) > 0) {
+    if ($SETTINGS['CHECK_PASSWORD'] === true && strlen($username) > 0) {
         // login request
         try {
             $hash = $config['ALLOWED_USERS'][$username];
