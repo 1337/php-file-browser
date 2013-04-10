@@ -21,6 +21,7 @@
             'LOGIN' => 'LOGIN',  // 8
             'AJAX_FILE_SAVE' => 'AJAX_FILE_SAVE',  // 9
             'JSON_TREE' => 'JSON_TREE',  // 10
+            'REVISIONS' => 'REVISIONS',  // 11
             'DEBUG' => 'DEBUG'),  // 99
         'DIRS_ONLY' => 0,
         'FILES_ONLY' => 1,

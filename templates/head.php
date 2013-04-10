@@ -6,7 +6,7 @@
 <head>
     <?php
         $css_files = array (
-            'css/opensans.css',
+            // 'css/opensans.css',
             'css/droidsans.css',
             'scripts/codemirror/lib/codemirror.css',
             'scripts/codemirror/theme/monokai.css',

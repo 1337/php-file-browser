@@ -1,5 +1,5 @@
 html, html * {
-    font-family: 'Open Sans', 'Segoe UI', Arial, sans-serif;
+    font-family: 'Open Sans', Helvetica, Arial, sans-serif;
     font-size: 12px;
 }
 
@@ -34,7 +34,7 @@ input {
 
 .header {
     margin: 0 0 5px 0;
-    padding: 5px;
+    padding: 10px 5px;
     font-size: 14pt;
     color: #CCC;
     background-color: #222;
@@ -43,6 +43,9 @@ input {
 
 .small {
     font-size: 10px;
+}
+.small.revisions {
+    font-weight: bold;
 }
 
 .lfloat {
@@ -91,17 +94,40 @@ input {
     width: 100%;
 }
 
-#filetree tr:hover, #filetree tr:even {
-    background-color: #eee;
+.fancy-table td {
+    padding: 6px 3px 7px 6px;
+    vertical-align: middle;
 }
 
-#filetree td {
-    padding: 10px 3px 3px 6px;
-    vertical-align: middle;
+table.revision {
+    border: 1px silver solid;
+}
+table.revision td:first-child {
+}
+table.revision td:first-child {
+    min-width: 50%;
+}
+table.revision td:first-child {
+    min-width: 30%;
+    text-align: center;
+}
+table.revision th:first-child + td + td {
+    text-align: right;
+}
+table.revision th:first-child + td + td + td {
+    text-align: center;
 }
 
 #filetree td img {
     margin-bottom: -2px;  /* icon shift */
+}
+
+.fancy-table tr:nth-child(odd) {
+    background-color: rgba(255, 255, 255, 0.5);
+}
+
+.fancy-table tr:hover {
+    background-color: rgba(200, 200, 255, 0.5);
 }
 
 #filetree tr td:first-child {
