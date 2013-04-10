@@ -1,51 +1,146 @@
-.tree {
-    background-color: #454d50; }
-    .tree * {
-        color: #eee; }
 html, html * {
-    font-family:'Open Sans', 'Segoe UI', Arial, sans-serif;
-    font-size: 12px; }
+    font-family: 'Open Sans', 'Segoe UI', Arial, sans-serif;
+    font-size: 12px;
+}
+
 body {
-    margin:0;
-    padding:0; }
+    margin: 0;
+    padding: 0;
+}
+
 a {
-    text-decoration:none;
-    cursor: pointer; }
-    a:hover {
-        text-decoration:underline; }
-    a img {
-        border:0; }
+    text-decoration: none;
+    cursor: pointer;
+}
+
+a:hover {
+    text-decoration: underline;
+}
+
+a img {
+    border: 0;
+}
+
+input {
+    /* background-color: #fff;
+    border: 1px silver solid;
+    border-radius: 4px; */
+    padding: 3px 8px;
+}
+
+.tree {
+    background-color: #f0f0f0;
+}
+
 .header {
-    margin:0 0 5px 0;
-    padding:5px;
+    margin: 0 0 5px 0;
+    padding: 5px;
     font-size: 14pt;
-    color: #3399EE;
-    vertical-align:top; }
+    color: #CCC;
+    background-color: #222;
+    vertical-align: top;
+}
+
 .small {
-    font-size: 10px; }
+    font-size: 10px;
+}
+
 .lfloat {
-    float: left; }
+    float: left;
+}
+
 .rfloat {
-    float: right; }
-.file_style { }
+    float: right;
+}
+
+.file_style {
+}
+
 .path_style {
     border-left: 3px #3399EE solid;
-    font-weight: bold; }
-.CodeMirror, .CodeMirror * {
-    font-family: 'Droid Sans Mono', monaco, consolas, monospace;
-    font-size: 10pt;
+    font-weight: bold;
+}
+
+.CodeMirror {
     width: 100%;
     height: 100%;
 }
+
+.codemirror * {
+    font-family: 'Droid Sans Mono', monaco, consolas, monospace;
+    font-size: 12px;
+    line-height: 15px;
+}
+
 .CodeMirror-scroll {
     height: 100% !important;
 }
+
+.codemirror-ui-clearfix {
+    z-index: 999 !important;
+    width: 300px;
+    top: 0;
+    right: 0;
+    position: fixed !important;
+}
+
 #filetree {
-    display:block;
-    margin:auto;
-    width: 100%; }
-    #filetree tr:hover, #filetree tr:even {
-        background-color: #eee; }
-    #filetree tr td:first-child + td {
-        width: 100%;
-        padding: 10px 3px 3px 6px; }
+    display: block;
+    margin: auto;
+    padding-bottom: 10px;
+    width: 100%;
+}
+
+#filetree tr:hover, #filetree tr:even {
+    background-color: #eee;
+}
+
+#filetree td {
+    padding: 10px 3px 3px 6px;
+    vertical-align: middle;
+}
+
+#filetree td img {
+    margin-bottom: -2px;  /* icon shift */
+}
+
+#filetree tr td:first-child {
+    width: 10%;
+    min-width: 40px;
+}
+
+#filetree tr td:first-child + td {
+    width: 60%;
+}
+
+#filetree tr td:first-child + td + td {
+    width: 30%;
+}
+
+.overlay {
+    display: none;
+
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    width: 400px; margin-left: -200px;
+    height: 100px; margin-top: -75px;
+    padding-top: 75px;
+    text-align: center;
+    border: 1px silver solid;
+    border-radius: 6px;
+}
+
+#success_message {
+    width: 200px; margin-left: -100px;
+    height: 50px; margin-top: -50px;
+    padding-top: 30px;
+    background-color: #ccffcc;
+}
+
+#error_message {
+    width: 200px; margin-left: -100px;
+    height: 50px; margin-top: -50px;
+    padding-top: 30px;
+    background-color: #ffcccc;
+}
