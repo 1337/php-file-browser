@@ -9,7 +9,7 @@
 
         // if I need to open/save a file then show...
         if ($file->size() <= 0) {
-            die ("To begin, click on a file name in the file panel.");
+            die (file_get_contents(PROJECT_ROOT . '/templates/EDITOR_NULL.php'));
         } else {
             include_once('head.php');
             $content = file_get_contents($file);
@@ -31,6 +31,8 @@
         <script src="scripts/codemirror/mode/xml/xml.js"></script>
         <script src="scripts/codemirror/mode/javascript/javascript.js"></script>
         <script src="scripts/codemirror/mode/css/css.js"></script>
+        <script src="scripts/codemirror/mode/python/python.js"></script>
+        <script src="scripts/codemirror/mode/htmlmixed/htmlmixed.js"></script>
         <script src="scripts/codemirror/mode/clike/clike.js"></script>
         <script src="scripts/codemirror/mode/php/php.js"></script>
         <script>

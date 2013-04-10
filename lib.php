@@ -215,9 +215,9 @@
                 case 'js':
                     return "javascript";
                 case 'py':
-                    return "python";
+                    return "text/x-python";
                 default:
-                    return "html";
+                    return "text/html";
             }
         }
     }

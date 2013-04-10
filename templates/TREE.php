@@ -26,7 +26,9 @@
                 </tr>
                 <tr>
                     <td></td>
-                    <td><a href="?mode=<?php mode('TREE') ?>&cwd=<?php echo dirname($cwd); ?>">(Up a level)</a></td>
+                    <td><a href="?mode=<?php mode('TREE') ?>&cwd=<?php echo dirname($cwd); ?>">
+                        (Up one level)
+                    </a></td>
                     <td></td>
                 </tr>
             <?php foreach ($files as $file) {
