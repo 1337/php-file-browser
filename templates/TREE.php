@@ -16,7 +16,7 @@
             <?php echo basename($cwd); ?>
             </h2>
 
-        <form method='post' target='tree' action='?mode=<?php mode('GROUP_ACTIONS') ?>'>
+        <form method='post' target='TREE' action='?mode=<?php mode('GROUP_ACTIONS') ?>'>
             <!-- ?mode=5 is needed -->
             <table id='filetree' class='fancy-table' cellspacing='0' cellpadding='2'>
                 <tr>
@@ -101,7 +101,7 @@
             </div>
         </form>
         <div id="upload">
-            <form method='post' target='tree'
+            <form method='post' target='TREE'
                   action='?mode=<?php mode('UPLOAD_HERE') ?>'
                   enctype='multipart/form-data'
                 style='overflow: hidden;'>
@@ -132,27 +132,40 @@
                 </table>
             </form>
         </div>
-        <form method='post' target='tree' action='?mode=<?php mode('COMMAND_LINE') ?>'>
+        <form method='post' target='TREE' action='?mode=<?php mode('COMMAND_LINE') ?>'>
             <!-- ?mode=COMMAND_LINE is needed -->
             <p class='header'>Execute</p>
             <table>
                 <tr>
                     <td>Command:</td>
                     <td>
-                        <input type='text' name='act'/>
+                        <!-- input type='text' name='act'/ -->
+                        <select name="act" id="act"
+                                style="width: 200px;">
+                            <option value="chmod">chmod( p1, p2 )</option>
+                            <option value="cp">cp( p1, p2 )</option>
+                            <option value="mkdir">mkdir( p1 )</option>
+                            <option value="mv">mv( p1, p2 )</option>
+                            <option value="restore">restore( p1 )</option>
+                            <option value="rm">rm( p1 )</option>
+                            <option value="rmdir">rmdir( p1 )</option>
+                            <option value="touch">touch( p1 )</option>
+                        </select>
                     </td>
                 </tr>
                 <tr>
                     <td>Param 1:</td>
                     <td>
                         <input type='text' id='param1'
-                               name='param1' value='<?php echo $cwd; ?>'/>
+                               name='param1' value='<?php echo $cwd; ?>'
+                               style="width: 200px;" />
                     </td>
                 </tr>
                 <tr>
                     <td>Param 2:</td>
                     <td>
-                        <input type='text' id='param2' name='param2'/>
+                        <input type='text' id='param2' name='param2'
+                               style="width: 200px;" />
                     </td>
                 </tr>
                 <tr>
