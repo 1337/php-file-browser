@@ -7,7 +7,7 @@
                 padding: 0;
             }
             #floater {
-                font-family: "Segoe UI", Helvetica, Arial;
+                font-family: Helvetica, Arial, sans-serif;
                 vertical-align: middle;
                 position: fixed;
                 top: 50%;
@@ -23,6 +23,6 @@
         </style>
     </head>
     <body>
-        <div id="floater">To begin, click on a file name in the file panel.</div>
+        <div id="floater">To begin, open a file from the list.</div>
     </body>
 </html>

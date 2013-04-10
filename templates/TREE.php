@@ -18,7 +18,7 @@
 
         <form method='post' target='tree' action='?mode=<?php mode('GROUP_ACTIONS') ?>'>
             <!-- ?mode=5 is needed -->
-            <table id='filetree' cellspacing='0' cellpadding='2'>
+            <table id='filetree' class='fancy-table' cellspacing='0' cellpadding='2'>
                 <tr>
                     <th>Select</th>
                     <th>Name</th>
@@ -60,7 +60,12 @@
                                     <?php echo $file['name']; ?>
                                 </a>
                                 <?php if ($file['revision_count']) {
-                                    echo "<br> See revisions";
+                                    echo "<br>",
+                                         "<a href='?mode=REVISIONS&cwd=$cwd&file=",
+                                         $file['name'],
+                                         "' target='EDITOR'",
+                                          " class='small revisions'",
+                                          ">See revisions</a>";
                                 } ?>
                             </td>
                             <td style="text-align: right;"><?php echo $file['size']; ?></td>

@@ -26,6 +26,11 @@
         case 'touch':
             touch($param1);
             break;
+        case 'restore':
+            // got $file
+            // $param1 be the 1304... timestamp
+            $file->restore_from($param1);
+            die('ok');
         case 'rm':
             unlink($param1);
             break;

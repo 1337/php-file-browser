@@ -172,6 +172,54 @@
             return glob($this->filename . '.b*.bak');
         }
 
+        public function revision_stamp() {
+            // no effect on normal files.
+            // returns an array
+            $parts = explode('.b', $this->filename); // [.b]12345678[.bak]
+            $parts_rev = array_reverse($parts);
+            $date_parts = array(
+                substr($parts_rev[1], 0, 2),  // year
+                substr($parts_rev[1], 2, 2),  // month
+                substr($parts_rev[1], 4, 2),  // day
+                substr($parts_rev[1], 6, 2),  // hour
+                substr($parts_rev[1], 8, 2),  // minute
+                substr($parts_rev[1], 10, 2)  // second
+            );
+            return $date_parts;
+        }
+
+        public function revision_time() {
+            // no effect on normal files.
+            // returns a timestamp
+
+            $date_parts = $this->revision_stamp();
+
+            // year correction
+            if ($date_parts[0] > 70) {
+                $date_parts[0] += 1900;
+            } else {
+                $date_parts[0] += 2000;
+            }
+
+            return mktime($date_parts[3], $date_parts[4], $date_parts[5], $date_parts[1], $date_parts[2], $date_parts[0]);
+        }
+
+        public function original_filename() {
+            // returns the original name whether or not this is a backup file.
+            $parts = explode('.b', $this->filename); // [.b]12345678[.bak]
+            return $parts[0];
+        }
+
+        public function restore_from($timestamp) {
+            // file name attachment, not unix time stamp
+            $success1 = rename($this->__toString(), $this->__toString() . '.moving');
+            $success2 = copy($this->__toString() . '.b' . $timestamp . '.bak', $this->__toString());
+            if ($success1 && $success2) {
+                // remove the backup
+                unlink($this->__toString() . '.moving');
+            }
+        }
+
         public function is_hidden() {
             // implies this function works only on *nix
             return $this->filename[0] === '.';
