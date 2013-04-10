@@ -24,7 +24,9 @@
                 echo ("Saved.");
             }
             */
-            file_put_contents($file, $content);
+
+            // success?
+            $s = file_put_contents($file, $content);
         }
     }
 
@@ -32,4 +34,4 @@
     $pf = 'http://' . $_SERVER['SERVER_NAME'];
 
     // redirect to the original editor page
-    header("location: ?cwd=$cwd&file=$file_base&mode=EDITOR");
+    header("location: ?cwd=$cwd&file=$file_base&mode=EDITOR&success=$s");

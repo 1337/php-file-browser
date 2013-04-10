@@ -28,6 +28,8 @@
             <input type='submit' name='save' id='save'
                     value='Save' style='display:none'/>
         </form>
+        <div id="success_message" class="overlay">File saved.</div>
+        <div id="error_message" class="overlay">File NOT saved!</div>
         <script src="scripts/codemirror/lib/codemirror.js"></script>
         <script src="scripts/codemirror/mode/xml/xml.js"></script>
         <script src="scripts/codemirror/mode/javascript/javascript.js"></script>
@@ -38,26 +40,20 @@
         <script src="scripts/codemirror/mode/php/php.js"></script>
         <script src="scripts/codemirror-ui/js/codemirror-ui.js"></script>
         <script>
+            // http://stackoverflow.com/questions/901115/how-can-i-get-query-string-values
+            function getParameterByName(name)
+            {
+                name = name.replace(/[\[]/, "\\\[").replace(/[\]]/, "\\\]");
+                var regexS = "[\\?&]" + name + "=([^&#]*)";
+                var regex = new RegExp(regexS);
+                var results = regex.exec(window.location.search);
+                if(results == null)
+                    return "";
+                else
+                    return decodeURIComponent(results[1].replace(/\+/g, " "));
+            }
+
             $(document).ready(function () {
-                /* var editor = CodeMirror.fromTextArea(document.getElementById("content"), {
-                    lineNumbers:true,
-                    theme:"monokai",
-                    mode: "<?php echo $file->codemirror_mode(); ?>",
-                    indentUnit:4,
-                    smartIndent:true,
-                    tabSize:4,
-                    indentWithTabs:false,
-                    matchBrackets:true,
-                    pollInterval:200,
-                    undoDepth:999,
-
-                    path : 'scripts/codemirror-ui/js/',
-                    searchMode: 'popup',
-                    buttons : ['undo','redo','jump','reindent','about'],
-
-                    value: $('#content').val()
-                }); */
-
                 var editor = new CodeMirrorUI(
                         document.getElementById("content"),
                         {
@@ -86,6 +82,16 @@
                             }
                         }
                 );
+
+                // report errors and stuff
+                var postSaveSuccess = getParameterByName('success');
+                if (postSaveSuccess !== "") {
+                    if (postSaveSuccess != '0') {
+                        $('#success_message').fadeIn().delay(500).fadeOut();
+                    } else {
+                        $('#error_message').fadeIn().delay(500).fadeOut();
+                    }
+                }
             });
         </script>
     </body>
