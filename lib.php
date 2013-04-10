@@ -3,7 +3,9 @@
      * public classes / functions
      */
 
-    if (!defined('PROJECT_ROOT')) die();
+    if (!defined('PROJECT_ROOT')) {
+        die();
+    }
 
     class DirTools {
         public $directory; // used by directory operations
@@ -88,8 +90,8 @@
 
 
     class FileTools {
-        public $directory; // used by directory operations
-        public $filename; // used by single-file operations
+        public $directory,  // used by directory operations
+                $filename;  // used by single-file operations
 
         function __construct($directory, $filename) {
             $this->directory = str_replace("\\", '/', $directory);

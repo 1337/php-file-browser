@@ -19,11 +19,21 @@
                 switch ($file['type']) {
                     case 'dir':
             ?>
-                <!-- dir -->
-
-            <?php  case 'file':
+                <tr>
+                    <!-- dir -->
+                    <td><img src='http://i.imgur.com/gMwUw.gif' /></td>
+                    <td><?php echo $file['name']; ?></td>
+                    <td><input type="checkbox" /></td>
+                </tr>
+            <?php  break;
+                    case 'file':
                     default: ?>
-                <!-- file -->
+                <tr>
+                    <!-- file -->
+                    <td>&nbsp;</td>
+                    <td><?php echo $file['name']; ?></td>
+                    <td><input type="checkbox" /></td>
+                </tr>
             <?php }} ?>
             </table>
             <p class='header'>Selected items</p>
@@ -106,8 +116,5 @@
                 </tr>
             </table>
         </form>
-        <p>Commands: chmod(param1,param2), cp(param1,param2),
-            mkdir(param1), mv(param1,param2),
-            rmdir(param1), touch(param1)</p>
     </body>
 </html>
