@@ -86,6 +86,10 @@
                 return '0000';
             }
         }
+
+        public function icon() {
+            return 'img/folder.png';
+        }
     }
 
 
@@ -99,6 +103,10 @@
                 $this->directory .= '/'; // auto-add trailing slash
             }
             $this->filename = str_replace("\\", '/', $filename);
+
+            if (!is_file($this->filename)) {
+                return null;
+            }
         }
 
         function __toString() {
@@ -114,6 +122,14 @@
                 return substr(sprintf('%o', fileperms($this->filename)), -4);
             } catch (Exception $e) {
                 return '0000';
+            }
+        }
+
+        public function size() {
+            try {
+                return filesize($this->filename);
+            } catch (Exception $e) {
+                return -1;
             }
         }
 
@@ -133,13 +149,63 @@
         }
 
         public function backup_file() {
-            $pcd = date('ymd');
+            $pcd = date('ymdHis');
             return $this->directory . $this->filename . '.b' . $pcd . '.bak';
+        }
+
+        public function revisions() {
+            // returns the backup file names.
+            return glob($this->filename . '.b*.bak');
         }
 
         public function is_hidden() {
             // implies this function works only on *nix
             return $this->filename[0] === '.';
+        }
+
+        public function icon() {
+            switch ($this->extension()) {
+                case 'jpg';
+                case 'jpeg';
+                case 'bmp';
+                case 'gif';
+                case 'png':
+                    return 'img/image.png';
+                case 'txt';
+                case 'pdf';
+                case 'doc';
+                case 'docx':
+                    return 'img/document.png';
+                case 'htm':
+                case 'html':
+                case 'css':
+                case 'php':
+                case 'phpx':
+                case 'js':
+                case 'py':
+                    return 'img/html.gif';
+                default:
+                    return 'img/default.png';
+            }
+        }
+
+        public function codemirror_mode () {
+            // guess the highlight mode.
+            switch ($this->extension()) {
+                case 'htm':
+                case 'html':
+                case 'php':
+                case 'phpx':
+                    return "application/x-httpd-php";
+                case 'css':
+                    return "css";
+                case 'js':
+                    return "javascript";
+                case 'py':
+                    return "python";
+                default:
+                    return "html";
+            }
         }
     }
 

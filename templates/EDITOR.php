@@ -8,7 +8,7 @@
         }
 
         // if I need to open/save a file then show...
-        if (!strlen($file) || !is_file($file)) {
+        if ($file->size() < 0) {
             die ("To begin, click on a file name in the file panel.");
         } else {
             include_once('head.php');
@@ -27,18 +27,18 @@
             <input type='submit' name='save' id='save'
                     value='Save' style='display:none'/>
         </form>
-        <script src="<?php echo CDN_ROOT; ?>scripts/codemirror/lib/codemirror.js"></script>
-        <script src="<?php echo CDN_ROOT; ?>scripts/codemirror/mode/xml/xml.js"></script>
-        <script src="<?php echo CDN_ROOT; ?>scripts/codemirror/mode/javascript/javascript.js"></script>
-        <script src="<?php echo CDN_ROOT; ?>scripts/codemirror/mode/css/css.js"></script>
-        <script src="<?php echo CDN_ROOT; ?>scripts/codemirror/mode/clike/clike.js"></script>
-        <script src="<?php echo CDN_ROOT; ?>scripts/codemirror/mode/php/php.js"></script>
+        <script src="scripts/codemirror/lib/codemirror.js"></script>
+        <script src="scripts/codemirror/mode/xml/xml.js"></script>
+        <script src="scripts/codemirror/mode/javascript/javascript.js"></script>
+        <script src="scripts/codemirror/mode/css/css.js"></script>
+        <script src="scripts/codemirror/mode/clike/clike.js"></script>
+        <script src="scripts/codemirror/mode/php/php.js"></script>
         <script>
             $(document).ready(function () {
                 var editor = CodeMirror.fromTextArea(document.getElementById("content"), {
                     lineNumbers:true,
                     theme:"monokai",
-                    mode:"application/x-httpd-php",
+                    mode: "<?php echo $file->codemirror_mode(); ?>",
                     indentUnit:4,
                     smartIndent:true,
                     tabSize:4,

@@ -21,12 +21,14 @@
     }
 
     // populate useful variables
-    $act = vars('act');
+    $username = vars('username');
+    $password = vars('password');
+
     $cwd = new DirTools(vars('cwd', getcwd()));
     $mode = vars('mode', 'FRAME');  // 0 = frame page
     $file = new FileTools($cwd, vars('file'));
     $file_base = basename($file);
+
+    $act = vars('act');
     $param1 = vars('param1'); // params for $act
     $param2 = vars('param2');
-    $username = vars('username');
-    $password = vars('password');

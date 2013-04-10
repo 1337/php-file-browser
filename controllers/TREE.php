@@ -10,7 +10,9 @@
                 'path' => (string)$cwd,
                 'type' => 'file',
                 'size' => $file_object->natural_size(),
-                'perm' => $file_object->perms()
+                'perm' => $file_object->perms(),
+                'icon' => $file_object->icon(),
+                'revision_count' => sizeof($file_object->revisions())
             );
         } else if (is_dir($file)) {
             $dir_object = new DirTools($file);
@@ -19,7 +21,8 @@
                 'path' => (string)$cwd,
                 'type' => 'dir',
                 'size' => '',
-                'perm' => $dir_object->perms()
+                'perm' => $dir_object->perms(),
+                'icon' => $dir_object->icon()
             );
         }
     }
