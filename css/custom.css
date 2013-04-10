@@ -68,12 +68,20 @@ input {
 
 .codemirror * {
     font-family: 'Droid Sans Mono', monaco, consolas, monospace;
-    font-size: 10pt;
-    line-height: 13pt;
+    font-size: 12px;
+    line-height: 15px;
 }
 
 .CodeMirror-scroll {
     height: 100% !important;
+}
+
+.codemirror-ui-clearfix {
+    z-index: 999 !important;
+    width: 300px;
+    top: 0;
+    right: 0;
+    position: fixed !important;
 }
 
 #filetree {

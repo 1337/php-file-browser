@@ -74,11 +74,17 @@
             <div id="selected_items" style="display: none;">
                 <p class='header'>Selected items</p>
                 <label>
-                    <input type='radio' name='act' value='rm'> Delete
+                    <input type='radio' name='act' value='rm'>
+                    <b>Delete</b>
+                    <br />&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+                    <span class="small">Permanently remove selected files.</span>
                 </label>
                 <br/>
                 <label>
-                    <input type='radio' name='act' value='archive'> Archive
+                    <input type='radio' name='act' value='archive'>
+                    <b>Archive</b>
+                    <br />&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+                    <span class="small">Move selected files to an archive directory.</span>
                 </label>
                 <br/>
                 <br/>
@@ -92,7 +98,8 @@
         <div id="upload">
             <form method='post' target='tree'
                   action='?mode=<?php mode('UPLOAD_HERE') ?>'
-                  enctype='multipart/form-data'>
+                  enctype='multipart/form-data'
+                style='overflow: hidden;'>
                 <!-- ?mode=7 is needed -->
                 <p class='header'>Upload</p>
                 <table>

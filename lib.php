@@ -103,14 +103,15 @@
                 $this->directory .= '/'; // auto-add trailing slash
             }
             $this->filename = str_replace("\\", '/', $filename);
-
-            if (!is_file($this->filename)) {
-                return null;
-            }
         }
 
         function __toString() {
-            return $this->directory . $this->filename;
+            if (strstr($this->filename, $this->directory)) {
+                // if for any reason the file name already includes the path
+                return $this->filename;
+            } else {
+                return $this->directory . $this->filename;
+            }
         }
 
         public function extension() {
@@ -151,19 +152,19 @@
         public function backup() {
             // make a backup copy.
             // return will be (success).
-
+            // printf("copy(%s, %s);", $this->__toString(), $this->backup_file());
             copy($this->__toString(), $this->backup_file());
 
             // inherit file permissions (of this script, not the file)
             chmod($this->backup_file(), fileperms(__FILE__));
 
-            return (file_get_contents($this->backup_file()) !== false);
+            return (@file_get_contents($this->backup_file()) !== false);
         }
 
         public function backup_file() {
             // get the name of a backup file if you were to make one now.
             $pcd = date('ymdHis');
-            return $this->directory . $this->filename . '.b' . $pcd . '.bak';
+            return $this->__toString() . '.b' . $pcd . '.bak';
         }
 
         public function revisions() {
