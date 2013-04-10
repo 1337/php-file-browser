@@ -31,4 +31,4 @@
     $pf = 'http://' . $_SERVER['SERVER_NAME'];
 
     // redirect to the original tree page
-    header("location: $pf/$cf?cwd=$cwd&file=$file_base&mode=1");
+    header("location: $pf/$cf?cwd=$cwd&file=$file_base&mode=TREE");

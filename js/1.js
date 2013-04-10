@@ -65,14 +65,14 @@
             } else { // file
                 var fi = '<a href="?cwd=' + data[i].path +
                     '&file=' + data[i].name +
-                    '&mode=3">' + data[i].size +
+                    '&mode=DOWNLOAD">' + data[i].size +
                     '</a>';
                 var isdir = false;
                 var link = $('<a />', {
                     'target':'editor',
                     'href':'?cwd=' + data[i].path +
                     '&file=' + data[i].name +
-                    '&mode=' + config.EDITOR,
+                    '&mode=EDITOR',
                     'text':data[i].name
                 });
             }

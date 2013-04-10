@@ -10,18 +10,14 @@
     if (!strlen($file) || !is_file($file)) {
         if (vars('content')) { // save?
             $content = vars('content');
+            $file_obj = new FileTools($cwd, $file);
 
             //pretend this is a backup
             if (BACKUP_BEFORE_SAVING) {
-                if (!file_exists($file->backup_file())) {
-                    // copy only if not exists (saves first file of date)
-                    copy($file, $file->backup_file());
-                }
-                // inherit file permissions
-                chmod($file->backup_file(), fileperms(__FILE__));
+                $file_obj->backup();
             }
 
-            if (file_get_contents($file, $content) === false) {
+            if (file_put_contents($file, $content) === false) {
                 echo ("Failed to save $file !");
             } else {
                 echo ("Saved.");

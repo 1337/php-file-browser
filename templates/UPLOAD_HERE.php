@@ -18,13 +18,10 @@
         <table class='filetree' cellspacing='0' cellpadding='2'>");
             <?php foreach ($files as $idx => $file) {
                 if (!$pn->is_hidden()) { // don't show hidden files
-                    echo "
-                        <tr><td style='width:100%%;'>
-                            <a href='?file=$file&amp;mode=",
-                    DOWNLOAD,
-                    "' target='_blank'>$file</a>
-                        </td></tr>
-                            ";
+                    echo "<tr><td style='width:100%%;'>
+                              <a href='?file=$file&amp;mode=",
+                         mode('DOWNLOAD', false),
+                         "' target='_blank'>$file</a></td></tr>";
                 }
             } ?>
         </table>

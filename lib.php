@@ -148,7 +148,20 @@
             return $bytes;
         }
 
+        public function backup() {
+            // make a backup copy.
+            // return will be (success).
+
+            copy($this->__toString(), $this->backup_file());
+
+            // inherit file permissions (of this script, not the file)
+            chmod($this->backup_file(), fileperms(__FILE__));
+
+            return (file_get_contents($this->backup_file()) !== false);
+        }
+
         public function backup_file() {
+            // get the name of a backup file if you were to make one now.
             $pcd = date('ymdHis');
             return $this->directory . $this->filename . '.b' . $pcd . '.bak';
         }

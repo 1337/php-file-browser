@@ -1,7 +1,7 @@
 <?php
     /**
      * init variables that all modes might require.
-     * Modes (e.g. ?mode=1):
+     * Modes (e.g. ?mode=TREE):
      * 0   frame (default)         -
      * 1   tree                    tree / editor
      * 2   editor                  editor

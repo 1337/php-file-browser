@@ -8,7 +8,7 @@
         }
 
         // if I need to open/save a file then show...
-        if ($file->size() < 0) {
+        if ($file->size() <= 0) {
             die ("To begin, click on a file name in the file panel.");
         } else {
             include_once('head.php');
