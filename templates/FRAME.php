@@ -8,8 +8,8 @@
 ?>
 <html>
 <frameset cols="300px,*">
-    <frame name="tree" src="?mode=1"/>
-    <frame name="editor" src="?mode=2"/>
+    <frame name="tree" src="?mode=TREE"/>
+    <frame name="editor" src="?mode=EDITOR"/>
 </frameset>
 <noframes></noframes>
 </html>

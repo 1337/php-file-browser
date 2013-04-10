@@ -164,14 +164,16 @@
     }
 
     function check_password($username, $password, $hash='') {
+        global $SETTINGS;
+
         $salt = '';  // the password was not salted
 
-        if (strlen($username) > 0 || strlen($password) > 0) {
+        if (strlen($username) <= 0 || strlen($password) <= 0) {
             // improper request
             return false;
         }
 
-        if (!array_key_exists($username, $CONFIG['ALLOWED_USERS'])) {
+        if (!array_key_exists($username, $SETTINGS['ALLOWED_USERS'])) {
             // user not registered
             return false;
         }
@@ -180,11 +182,22 @@
             // that is, a separator was found in the hash
             $components = explode(';', $hash, 2);
 
-            // the password was generated with $salt APpended
+            // the password was generated with $salt Appended
             $hash = $components[0];
             $salt = $components[1];
         }
 
         // do the actual check
         return strtolower(sha1($password . $salt)) === strtolower($hash);
+    }
+
+    function mode($which, $echo=true) {
+        // shorthand helper for the mode.
+        global $SETTINGS;
+
+        $mode = $SETTINGS['MODES'][$which];
+        if ($echo === true) {
+            echo $mode;
+        }
+        return $mode;
     }

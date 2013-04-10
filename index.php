@@ -10,6 +10,7 @@
      *
     */
 
+    error_reporting(E_ALL);
     define('PROJECT_ROOT', dirname(__FILE__));
 
     // will only bring in configs from files called this.
@@ -26,10 +27,10 @@
         'BACKUP_BEFORE_SAVING' => true,
         'SHOW_HIDDEN_OBJECTS' => true, // unix only!
         'SHOW_BACKUP_OBJECTS' => false, // show .b??????.bak files
-        'CHECK_PASSWORD' => false, // show login window
+        'CHECK_PASSWORD' => true, // show login window
         'ALLOWED_USERS' => array (
-            // 'brian' => '526242588032599f491f36c10137c88c076384ef',
-            // 'guest' => '787373e81b9e76715abeae529faf9a0a9dbf5079'
+            'brian' => '40bd001563085fc35165329ea1ff5c5ecbdbbeef',  // 123
+            'guest' => '787373e81b9e76715abeae529faf9a0a9dbf5079'
         )
     );
 
@@ -41,18 +42,25 @@
     // public subs ============================================================
     chdir($cwd); // because
 
-    if ($SETTINGS['CHECK_PASSWORD'] === true && strlen($username) > 0) {
+    if ($SETTINGS['CHECK_PASSWORD'] === true) {
         // login request
         try {
-            $hash = $config['ALLOWED_USERS'][$username];
-            if (check_password($username, $password, $hash)) {
-                setcookie("username", $username, time() + 36000);
-                setcookie("password", $password, time() + 36000);
+            if (!isset($username)) {
+                $username = '';
+            }
+            if (array_key_exists($username, $SETTINGS['ALLOWED_USERS'])) {
+                $hash = $SETTINGS['ALLOWED_USERS'][$username];
+                if (check_password($username, $password, $hash)) {
+                    setcookie("username", $username, time() + 36000);
+                    setcookie("password", $password, time() + 36000);
+                } else {
+                    $mode = 'LOGIN'; // authentication failed; redirect to login page
+                }
             } else {
-                $mode = LOGIN; // authentication failed; redirect to login page
+                $mode = 'LOGIN'; // user not found; redirect to login page
             }
         } catch (Exception $e) {
-            $mode = LOGIN;
+            $mode = 'LOGIN';
         }
     }
 
