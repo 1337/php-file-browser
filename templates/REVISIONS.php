@@ -50,10 +50,17 @@
                             "<td>",
                             "<a class='restorable' href='#'>Restore</a>",
                             "</td>",
+                            "</tr>",
+                            "<tr>",
+                            "<td colspan='4' style='text-align: left;'><code>",
+                            $revision['diff'],
+                            "</code></td>",
                             "</tr>";
                     }
                 ?>
             </table>
+            <p>&nbsp;</p>
+            <p>Powered by (modified) <a href="https://github.com/paulgb/simplediff">SimpleDiff</a> by Paul Butler</p>
         </div>
         <script type="text/javascript">
             var backToEditor = function () {

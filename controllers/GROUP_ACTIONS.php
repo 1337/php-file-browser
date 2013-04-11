@@ -9,26 +9,17 @@
     $i = 0;
     do {
         $i++;
-        $param1 = vars('c' . $i); // these are not the same params as mode 4
-        $param2 = vars('f' . $i);
+        $c = vars('c' . $i); // these are not the same params as mode 4
+        $f = vars('f' . $i);
 
-        if ($param1 === '1') { // checkbox for this file is enabled
-            switch (strtolower($a)) {
-                case 'rm';
-                case 'rmdir':
-                    unlink($param2);
-                    break;
-                case 'archive':
-                    $pcd = date('ymd');
-                    mkdir("$cwd/archive.b$pcd/");
-                    rename($param2, "$cwd/archive.b$pcd/" . basename($param2));
-                default:
+        if ($c === '1') { // checkbox for this file is enabled
+            try {
+                fs_operation($act, $cwd . $f, new FileTools($cwd, $f));
+            } catch (Exception $e) {
+                die (strval($e));
             }
         }
-    } while (vars('c' . $i));
-
-    $cf = basename($_SERVER['SCRIPT_FILENAME']);
-    $pf = 'http://' . $_SERVER['SERVER_NAME'];
+    } while (vars('f' . $i));
 
     // redirect to the original tree page
-    header("location: $pf/$cf?cwd=$cwd&file=$file_base&mode=TREE");
+    header("Location: " . str_replace('GROUP_ACTIONS', 'TREE', $_SERVER['REQUEST_URI']));

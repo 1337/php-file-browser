@@ -114,6 +114,10 @@
             }
         }
 
+        public function contents() {
+            return file_get_contents($this->__toString());
+        }
+
         public function extension() {
             return pathinfo($this->filename, PATHINFO_EXTENSION);
         }
@@ -268,6 +272,39 @@
                 default:
                     return "text/html";
             }
+        }
+    }
+
+    function fs_operation($act, $param1, $param2, $file=null) {
+        switch (strtolower($act)) {
+            case 'mv':
+                rename($param1, $param2);
+                break;
+            case 'chmod':
+                chmod($param1, $param2);
+                break;
+            case 'cp':
+                copy($param1, $param2);
+                break;
+            case 'mkdir':
+                mkdir($param1);
+                break;
+            case 'touch':
+                touch($param1);
+                break;
+            case 'restore':
+                // got $file
+                // $param1 be the 1304... timestamp
+                $file->restore_from($param1);
+                die('ok');
+            case 'rm':
+                unlink($param1);
+                break;
+            case 'rmdir':
+                rmdir($param1);
+                break;
+            default:
+                throw new Exception("No such command: $act");
         }
     }
 

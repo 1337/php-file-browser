@@ -8,6 +8,8 @@
         }
 
         include_once('head.php');
+        $c = 0;
+        $f = 0;
     ?>
     <body class='tree'>
         <h2 id='filetree_head' class='header'>
@@ -37,7 +39,7 @@
             ?>
                         <tr class="dir">
                             <!-- dir -->
-                            <td><input type="checkbox" /><img src='<?php echo $file['icon']; ?>' /></td>
+                            <td style="text-align: right;"><img src='<?php echo $file['icon']; ?>' /></td>
                             <td class="clickable">
                                 <a href="?mode=<?php mode('TREE'); ?>&cwd=<?php echo $cwd . $file['name']; ?>"
                                    target="TREE">
@@ -53,7 +55,12 @@
             ?>
                         <tr class="file">
                             <!-- file -->
-                            <td><input type="checkbox" /><img src='<?php echo $file['icon']; ?>' /></td>
+                            <td style="text-align: right;">
+                                <input type="checkbox" name="c<?php echo ++$c; ?>" value="1" />
+                                <input type="hidden" name="f<?php echo $c; ?>"
+                                       value="<?php echo $file['name']; ?>" />
+                                <img src='<?php echo $file['icon']; ?>' />
+                            </td>
                             <td class="clickable">
                                 <a href="?mode=<?php mode('EDITOR'); ?>&cwd=<?php echo $cwd; ?>&file=<?php echo $file['name']; ?>"
                                    target="EDITOR">
@@ -182,18 +189,16 @@
         </form>
 
         <script type="text/javascript">
-            (function ($) {
-                $(document).ready(function () {
-                    $('#filetree input').click(function () {
-                        var selectedItems = $('#selected_items');
-                        if ($('#filetree input:checked').length) {
-                            selectedItems.slideDown('slow');
-                        } else {
-                            selectedItems.slideUp('slow');
-                        }
-                    });
+            $(document).ready(function () {
+                $('#filetree input').click(function () {
+                    var selectedItems = $('#selected_items');
+                    if ($('#filetree input:checked').length) {
+                        selectedItems.slideDown('slow');
+                    } else {
+                        selectedItems.slideUp('slow');
+                    }
                 });
-            }(jQuery));
+            });
         </script>
     </body>
 </html>

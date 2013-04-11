@@ -6,6 +6,8 @@
         die();
     }
 
+    $s = true;  // if you didnt do anything, you succeed, right?
+
     // if I need to open/save a file then show...
     if (strlen($file) && is_file($file)) {
         if (vars('content')) { // save?
@@ -17,14 +19,6 @@
                 $file_obj->backup();
             }
 
-            /*
-            if (file_put_contents($file, $content) === false) {
-                echo ("Failed to save $file !");
-            } else {
-                echo ("Saved.");
-            }
-            */
-
             // success?
             $s = file_put_contents($file, $content);
         }
@@ -34,4 +28,7 @@
     $pf = 'http://' . $_SERVER['SERVER_NAME'];
 
     // redirect to the original editor page
-    header("location: ?cwd=$cwd&file=$file_base&mode=EDITOR&success=$s");
+    header("location: index.php?cwd=$cwd&file=$file_base&mode=EDITOR&success=$s");
+    // header('Location: ' .
+    //        str_replace('AJAX_FILE_SAVE', 'EDITOR', $_SERVER['REQUEST_URI']) .
+    //        '&success=' . $s);
