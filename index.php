@@ -8,7 +8,7 @@
      * This is the entry point of the browser.
      * It decides which file to continue execution.
      *
-    */
+     */
 
     error_reporting(E_ALL);
     define('PROJECT_ROOT', dirname(__FILE__));

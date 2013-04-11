@@ -23,7 +23,7 @@
             'perm' => $rev->perms(),
             'icon' => $rev->icon(),
 
-            'diff' => htmlDiff($old, $new),
+            'diff' => htmlDiff($new, $old),  // that's right, i swapped old and new
             'date' => date('l, Y-m-d h:i:s A', $rev->revision_time()),
             'stamp' => implode('', $rev->revision_stamp())
         );
