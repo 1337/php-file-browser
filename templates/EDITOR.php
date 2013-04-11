@@ -61,7 +61,10 @@
                             searchMode: 'popup',
                             buttons : [
                                 'save', 'undo', 'redo', 'jump', 'reindent'
-                            ]
+                            ],
+                            saveCallback: function () {
+                                $('#editor_form').submit();
+                            }
                         },{
                             lineNumbers:true,
                             theme:"monokai",

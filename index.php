@@ -29,8 +29,8 @@
         'SHOW_BACKUP_OBJECTS' => false, // show .b??????.bak files
         'CHECK_PASSWORD' => true, // show login window
         'ALLOWED_USERS' => array (
-            'brian' => '40bd001563085fc35165329ea1ff5c5ecbdbbeef',  // 123
-            'guest' => '787373e81b9e76715abeae529faf9a0a9dbf5079'
+            'brian' => 'd627ad184982f628694da99e5954d6305686e0a1',
+            'staff' => 'c7f45a8819d89020c94e1501272b978a1a95b8f1;poop'
         )
     );
 
